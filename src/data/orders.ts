@@ -21,7 +21,7 @@ export const sampleOrders: Order[] = [
     status: "Will be shipped in 3 days...",
     quantity: 3,
     totalPrice: "-",
-    amountLeft: "Not yet determined",
+    amountLeft: "-",
     state: "Selangor",
     district: "Serdang",
     collectionPoint: "UPM",
