@@ -30,7 +30,7 @@ const Register = () => {
         <form onSubmit={handleRegister} className="space-y-5">
           <Input
             type="email"
-            placeholder="test"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="h-12 bg-card border-border"
