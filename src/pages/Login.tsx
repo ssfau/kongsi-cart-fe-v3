@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
@@ -7,18 +7,23 @@ import logo from "@/assets/logo.png";
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // API logic placeholder
+    // TODO: API login logic here
+    // On success, navigate to dashboard
+    navigate("/dashboard");
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm space-y-8">
+        <h1 className="text-center text-2xl font-bold text-foreground">Login Page</h1>
+
         {/* Logo */}
         <div className="flex justify-center">
-          <div className="h-28 w-28 overflow-hidden rounded-full border-2 border-border bg-card shadow-md flex items-center justify-center">
+          <div className="h-28 w-28 overflow-hidden rounded-full border-2 border-primary bg-card shadow-md flex items-center justify-center">
             <img src={logo} alt="App Logo" width={80} height={80} className="object-contain" />
           </div>
         </div>
@@ -46,11 +51,9 @@ const Login = () => {
         </form>
 
         {/* Links */}
-        <div className="flex flex-col items-center gap-3 text-sm">
-          <Link to="#" className="text-muted-foreground hover:text-foreground transition-colors">
-            Don't have an acc?
-          </Link>
-          <Link to="/register" className="text-foreground font-medium underline underline-offset-4 hover:text-primary transition-colors">
+        <div className="text-center text-sm">
+          <span className="text-muted-foreground">Don't have an account? </span>
+          <Link to="/register" className="text-primary font-medium underline underline-offset-4 hover:text-primary/80 transition-colors">
             Register
           </Link>
         </div>
