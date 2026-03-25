@@ -3,11 +3,11 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import SettingsPage from "./pages/SettingsPage";
-import NotFound from "./pages/NotFound";
+import Login from "./pages/user/Login";
+import Register from "./pages/user/Register";
+import Dashboard from "./pages/user/Dashboard";
+import SettingsPage from "./pages/user/SettingsPage";
+import NotFound from "./pages/user/NotFound";
 
 const queryClient = new QueryClient();
 
