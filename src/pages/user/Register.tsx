@@ -1,17 +1,44 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
+import api from "@/services/api";
 
 const Register = () => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // API logic placeholder
+    setIsLoading(true);
+    setError("");
+
+    try {
+      // Connect to the actual backend API
+      const response = await api.post("/auth/register", {
+        email,
+        username,
+        password,
+      });
+
+      // Based on your requirements, registration might return a token or just success message
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
+      
+      // Redirect to login or dashboard
+      navigate("/");
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      setError(err.response?.data?.message || "Something went wrong during registration.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -28,30 +55,37 @@ const Register = () => {
 
         {/* Form */}
         <form onSubmit={handleRegister} className="space-y-5">
+          {error && <div className="text-destructive text-sm text-center font-medium">{error}</div>}
           <Input
             type="email"
             placeholder="Email"
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="h-12 bg-card border-border"
+            disabled={isLoading}
           />
           <Input
             type="text"
             placeholder="Username"
+            required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             className="h-12 bg-card border-border"
+            disabled={isLoading}
           />
           <Input
             type="password"
             placeholder="Password"
+            required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="h-12 bg-card border-border"
+            disabled={isLoading}
           />
 
-          <Button type="submit" className="w-full h-12 text-base font-medium">
-            Register
+          <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading}>
+            {isLoading ? "Registering..." : "Register"}
           </Button>
         </form>
 

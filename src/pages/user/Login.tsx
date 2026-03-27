@@ -3,17 +3,52 @@ import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
+import { authService } from "@/services/api.js";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: API login logic here
-    // On success, navigate to dashboard
-    navigate("/dashboard");
+    if (!username || !password) {
+      toast({
+        title: "Error",
+        description: "Please enter both username and password.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await authService.login({ email: username, password });
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Logged in successfully!",
+        });
+        navigate("/dashboard");
+      } else {
+        toast({
+          title: "Login Failed",
+          description: result.error || "Invalid credentials",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Login Error",
+        description: error.response?.data?.error || "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -32,10 +67,11 @@ const Login = () => {
         <form onSubmit={handleLogin} className="space-y-5">
           <Input
             type="text"
-            placeholder="Username"
+            placeholder="Username (Email)"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             className="h-12 bg-card border-border"
+            disabled={isLoading}
           />
           <Input
             type="password"
@@ -43,10 +79,11 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="h-12 bg-card border-border"
+            disabled={isLoading}
           />
 
-          <Button type="submit" className="w-full h-12 text-base font-medium">
-            Log In
+          <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Log In"}
           </Button>
         </form>
 
@@ -63,3 +100,4 @@ const Login = () => {
 };
 
 export default Login;
+
