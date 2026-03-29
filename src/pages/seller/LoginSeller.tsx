@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import { Loader2, Mail, Lock, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import api from "../../lib/axios";
 
 interface LoginFormData {
   email: string;
@@ -23,26 +23,35 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm<LoginFormData>();
 
+  useEffect(() => {
+    const userId = localStorage.getItem("demoUserId");
+    const userRole = localStorage.getItem("demoUserRole");
+    if (userId && userRole === "handler") {
+      navigate("/handler/listings");
+    }
+  }, [navigate]);
+
   const onSubmit = async (data: LoginFormData) => {
     setError(null);
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post("/api/v1/auth/login", {
+      const response = await api.post("/auth/login", {
         email: data.email,
         password: data.password,
         role: "handler",
       });
 
-      const { _id, role } = response.data.user;
+      const { id, role } = response.data.data.user;
 
-      localStorage.setItem("demoUserId", _id);
+      localStorage.setItem("demoUserId", id);
       localStorage.setItem("demoUserRole", role);
 
       navigate("/handler/listings");
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response?.data?.message) {
-        setError(err.response.data.message);
+    } catch (err: any) {
+      const apiError = err.response?.data?.error || err.response?.data?.message;
+      if (apiError) {
+        setError(apiError);
       } else {
         setError("Login failed. Please check your credentials and try again.");
       }
@@ -109,10 +118,6 @@ const LoginPage = () => {
                 className="pl-10"
                 {...register("password", {
                   required: "Password is required",
-                  minLength: {
-                    value: 6,
-                    message: "Password must be at least 6 characters",
-                  },
                 })}
               />
             </div>
