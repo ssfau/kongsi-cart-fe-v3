@@ -88,11 +88,18 @@ const Login = () => {
         </form>
 
         {/* Links */}
-        <div className="text-center text-sm">
-          <span className="text-muted-foreground">Don't have an account? </span>
-          <Link to="/register" className="text-primary font-medium underline underline-offset-4 hover:text-primary/80 transition-colors">
-            Register
-          </Link>
+        <div className="flex flex-col items-center gap-3 text-sm">
+          <div>
+            <span className="text-muted-foreground">Don't have an account? </span>
+            <Link to="/register" className="text-primary font-medium underline underline-offset-4 hover:text-primary/80 transition-colors">
+              Register
+            </Link>
+          </div>
+          <div>
+            <Link to="/seller/login" className="text-muted-foreground font-medium underline underline-offset-4 hover:text-primary transition-colors">
+              Login as Seller
+            </Link>
+          </div>
         </div>
       </div>
     </div>

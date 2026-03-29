@@ -8,6 +8,7 @@ import Register from "./pages/user/Register";
 import Dashboard from "./pages/user/Dashboard";
 import SettingsPage from "./pages/user/SettingsPage";
 import NotFound from "./pages/user/NotFound";
+import LoginSeller from "./pages/seller/LoginSeller";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/seller/login" element={<LoginSeller />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
