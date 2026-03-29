@@ -10,6 +10,8 @@ import SettingsPage from "./pages/user/SettingsPage";
 import NotFound from "./pages/user/NotFound";
 import LoginSeller from "./pages/seller/LoginSeller";
 import HandlerListings from "./pages/seller/HandlerListings";
+import CreateListings from "./pages/seller/CreateListings";
+import DemandDashboard from "./pages/seller/DemandDashboard";
 import { HandlerProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -30,9 +32,8 @@ const App = () => (
           {/* Handler Protected Routes */}
           <Route element={<HandlerProtectedRoute />}>
             <Route path="/handler/listings" element={<HandlerListings />} />
-            {/* Add more handler sub-routes here */}
-          </Route>
-
+            <Route path="/handler/listings/new" element={<CreateListings />} />
+            <Route path="/handler/listings/:id/demand" element={<DemandDashboard />} />          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

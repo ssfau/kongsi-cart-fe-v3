@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Loader2, Mail, Lock, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -23,14 +23,9 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm<LoginFormData>();
 
-  useEffect(() => {
-    const userId = localStorage.getItem("demoUserId");
-    const userRole = localStorage.getItem("demoUserRole");
-    if (userId && userRole === "handler") {
-      navigate("/handler/listings");
-    }
-  }, [navigate]);
-
+  // If you never want auto-login, we remove the useEffect redirect completely.
+  // The user will always see this form every time they visit /seller/login.
+  
   const onSubmit = async (data: LoginFormData) => {
     setError(null);
     setIsSubmitting(true);
@@ -44,8 +39,8 @@ const LoginPage = () => {
 
       const { id, role } = response.data.data.user;
 
-      localStorage.setItem("demoUserId", id);
-      localStorage.setItem("demoUserRole", role);
+      sessionStorage.setItem("demoUserId", id);
+      sessionStorage.setItem("demoUserRole", role);
 
       navigate("/handler/listings");
     } catch (err: any) {
@@ -146,10 +141,14 @@ const LoginPage = () => {
         </form>
 
         {/* Footer */}
-        <p className="text-muted-foreground text-xs text-center mt-6">
-          Access restricted to authorized sellers. Contact support to request
-          access.
-        </p>
+        <div className="flex flex-col items-center gap-4 mt-6">
+          <p className="text-muted-foreground text-xs text-center">
+            Access restricted to authorized sellers. Contact support to request access.
+          </p>
+          <Link to="/" className="text-sm font-medium underline underline-offset-4 hover:text-primary transition-colors text-muted-foreground">
+            Return to User Login
+          </Link>
+        </div>
       </div>
     </div>
   );

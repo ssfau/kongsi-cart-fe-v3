@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import api from "../../lib/axios";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, ArrowLeft } from "lucide-react";
 
 interface FormValues {
   itemName: string;
@@ -66,7 +66,12 @@ const CreateListing = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-foreground mb-6">Create New Listing</h1>
+      <div className="flex items-center mb-6 space-x-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/handler/listings")}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-2xl font-bold text-foreground m-0">Create New Listing</h1>
+      </div>
 
       <Card>
         <CardHeader>

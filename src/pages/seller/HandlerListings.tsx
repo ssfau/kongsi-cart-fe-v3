@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, Trash2, Package, Calendar } from "lucide-react";
+import { Eye, Trash2, Package, Calendar, LogOut } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +70,14 @@ const HandlerListings = () => {
     }
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem("demoUserId");
+    sessionStorage.removeItem("demoUserRole");
+    localStorage.removeItem("demoUserId");
+    localStorage.removeItem("demoUserRole");
+    navigate("/seller/login");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -82,10 +90,16 @@ const HandlerListings = () => {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-foreground">My Listings</h1>
-        <Button onClick={() => navigate("/handler/listings/new")}>
-          <Package className="h-4 w-4 mr-2" />
-          New Listing
-        </Button>
+        <div className="space-x-2">
+          <Button variant="outline" onClick={handleLogout}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
+          </Button>
+          <Button onClick={() => navigate("/handler/listings/new")}>
+            <Package className="h-4 w-4 mr-2" />
+            New Listing
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
