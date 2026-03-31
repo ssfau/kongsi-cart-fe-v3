@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Settings, Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -6,14 +6,23 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ShopPage from "@/components/dashboard/ShopPage";
 import OrdersPage from "@/components/dashboard/OrdersPage";
 import PaymentMethodPage from "@/components/dashboard/PaymentMethodPage";
+import { authService } from "@/services/api";
 
 type Tab = "shop" | "orders" | "payment";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<Tab>("shop");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userName, setUserName] = useState<string>("username");
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    if (user && user.name) {
+      setUserName(user.name);
+    }
+  }, []);
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "shop", label: "Shop" },
@@ -47,7 +56,7 @@ const Dashboard = () => {
         ))}
       </div>
       <div className="p-4 border-t border-[hsl(var(--sidebar-border))]">
-        <p className="text-sm font-medium truncate">username</p>
+        <p className="text-sm font-medium truncate">{userName}</p>
       </div>
     </div>
   );
