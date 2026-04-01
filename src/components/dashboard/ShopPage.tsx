@@ -40,6 +40,7 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
   const [activeGroup, setActiveGroup] = useState<CategoryGroup>("All");
   const userLocation = useUserLocation();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Notify user if location is default
   useEffect(() => {
