@@ -4,9 +4,12 @@ import { fakeListings } from "@/data/fakeListings";
 import ItemDetail from "./ItemDetail";
 import api from "@/lib/axios";
 import { Progress } from "@/components/ui/progress";
-import { Leaf, TrendingUp, Users } from "lucide-react";
+import { Leaf, TrendingUp, Users, MapPin } from "lucide-react";
 import musangKingHero from "@/assets/musang-king-hero.jpg";
 import { produceImages } from "@/assets/produce";
+import { useUserLocation } from "@/hooks/useUserLocation";
+import { getListingCoords, getDistanceKm } from "@/data/locationCoordinates";
+import { useToast } from "@/hooks/use-toast";
 
 export interface ListingItem {
   _id: string;
@@ -33,6 +36,15 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
   const [listings, setListings] = useState<ListingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeGroup, setActiveGroup] = useState<CategoryGroup>("All");
+  const userLocation = useUserLocation();
+  const { toast } = useToast();
+
+  // Notify user if location is default
+  useEffect(() => {
+    if (userLocation.error && onNotification) {
+      onNotification(userLocation.error);
+    }
+  }, [userLocation.error]);
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -60,12 +72,22 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
   const categoryGroups: CategoryGroup[] = ["All", "Leafy Greens", "Vegetables", "Fruits"];
 
   const filteredListings = useMemo(() => {
-    if (activeGroup === "All") return listings;
-    const categoryNames = shopItemCategories
-      .filter((c) => c.group === activeGroup)
-      .map((c) => c.name);
-    return listings.filter((item) => categoryNames.includes(item.category));
-  }, [listings, activeGroup]);
+    let items = listings;
+    if (activeGroup !== "All") {
+      const categoryNames = shopItemCategories
+        .filter((c) => c.group === activeGroup)
+        .map((c) => c.name);
+      items = items.filter((item) => categoryNames.includes(item.category));
+    }
+    // Sort by distance
+    return items
+      .map((item) => {
+        const coords = getListingCoords(item.district, item.state);
+        const distance = getDistanceKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
+        return { ...item, _distance: distance };
+      })
+      .sort((a, b) => a._distance - b._distance);
+  }, [listings, activeGroup, userLocation.lat, userLocation.lng]);
 
   if (selectedItem) {
     return <ItemDetail item={selectedItem} onBack={() => setSelectedItem(null)} onNotification={onNotification} />;
@@ -136,6 +158,11 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
             </div>
             <p className="text-[10px] text-white/50 mt-1">
               Join now to lock in the lowest price!
+              {durianListing && (() => {
+                const dc = getListingCoords(durianListing.district, durianListing.state);
+                const dist = getDistanceKm(userLocation.lat, userLocation.lng, dc.lat, dc.lng);
+                return <span className="ml-2 text-kongsi-green font-semibold">Closest pool: {dist.toFixed(1)} km away</span>;
+              })()}
             </p>
           </div>
 
@@ -166,6 +193,15 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
             {group}
           </button>
         ))}
+      </div>
+
+      {/* Sorting indicator */}
+      <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+          <MapPin className="h-3 w-3" />
+          Sorted by: Closest to You
+          {userLocation.isDefault && <span className="text-muted-foreground ml-1">(default location)</span>}
+        </div>
       </div>
 
       {/* Product grid */}
@@ -220,6 +256,12 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
                     <Leaf className="h-3 w-3" />
                     Direct from Supplier
                   </span>
+                  {(item as any)._distance != null && (
+                    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                      <MapPin className="h-2.5 w-2.5" />
+                      {((item as any)._distance as number).toFixed(1)} km
+                    </span>
+                  )}
                   <h3 className="text-sm font-bold text-card-foreground leading-snug line-clamp-2">
                     {displayName}
                   </h3>
