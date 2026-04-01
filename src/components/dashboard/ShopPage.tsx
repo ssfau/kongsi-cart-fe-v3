@@ -263,7 +263,8 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
             const categoryData = shopItemCategories.find((c) => c.name === item.category);
             const imageUrl = produceImages[item.category] || "";
             const icon = categoryData ? categoryData.image : "?";
-            const displayName = categoryData?.displayName || item.itemName;
+            // Prioritize backend name; only use category displayName for mock data
+            const displayName = isBackendData ? (item.itemName || categoryData?.displayName || item.category) : (categoryData?.displayName || item.itemName);
             const demandPercent = item.currentDemand
               ? Math.min(100, (item.currentDemand / (item.targetDemand || 100)) * 100)
               : 0;
