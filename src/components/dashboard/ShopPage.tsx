@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { shopItemCategories, type ShopItemCategory } from "@/data/shopItems";
+import { shopItemCategories } from "@/data/shopItems";
 import { fakeListings } from "@/data/fakeListings";
 import ItemDetail from "./ItemDetail";
-import LiveNearYou from "./LiveNearYou";
+import SplitHeroMap from "./SplitHeroMap";
 import api from "@/lib/axios";
 import { Progress } from "@/components/ui/progress";
 import { Leaf, TrendingUp, Users, MapPin } from "lucide-react";
@@ -31,9 +31,10 @@ type CategoryGroup = "All" | "Leafy Greens" | "Vegetables" | "Fruits";
 
 interface ShopPageProps {
   onNotification?: (msg: string) => void;
+  searchQuery?: string;
 }
 
-const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
+const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
   const [selectedItem, setSelectedItem] = useState<ListingItem | null>(null);
   const [listings, setListings] = useState<ListingItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +43,6 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Notify user if location is default
   useEffect(() => {
     if (userLocation.error && onNotification) {
       onNotification(userLocation.error);
@@ -76,13 +76,30 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
 
   const filteredListings = useMemo(() => {
     let items = listings;
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      items = items.filter((item) => {
+        const categoryData = shopItemCategories.find((c) => c.name === item.category);
+        const displayName = categoryData?.displayName || item.itemName;
+        return (
+          displayName.toLowerCase().includes(q) ||
+          item.itemName.toLowerCase().includes(q) ||
+          item.category.toLowerCase().includes(q) ||
+          (item.district || "").toLowerCase().includes(q) ||
+          (item.state || "").toLowerCase().includes(q)
+        );
+      });
+    }
+
     if (activeGroup !== "All") {
       const categoryNames = shopItemCategories
         .filter((c) => c.group === activeGroup)
         .map((c) => c.name);
       items = items.filter((item) => categoryNames.includes(item.category));
     }
-    // Sort by distance
+
     return items
       .map((item) => {
         const coords = getListingCoords(item.district, item.state);
@@ -90,13 +107,13 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
         return { ...item, _distance: distance };
       })
       .sort((a, b) => a._distance - b._distance);
-  }, [listings, activeGroup, userLocation.lat, userLocation.lng]);
+  }, [listings, activeGroup, userLocation.lat, userLocation.lng, searchQuery]);
 
   if (selectedItem) {
     return <ItemDetail item={selectedItem} onBack={() => setSelectedItem(null)} onNotification={onNotification} />;
   }
 
-  // Find durian listing for hero
+  // Durian hero data
   const durianListing = listings.find((l) => l.category === "Durian");
   const durianDemand = durianListing?.currentDemand ?? 85;
   const durianTarget = durianListing?.targetDemand ?? 100;
@@ -106,91 +123,92 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
-      {/* Hero Banner — Musang King Ad */}
-      <div className="relative rounded-2xl overflow-hidden mb-8 group">
-        {/* Background image */}
-        <img
-          src={musangKingHero}
-          alt="Musang King Durian"
-          className="w-full h-64 md:h-80 object-cover"
-          width={1920}
-          height={640}
-        />
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+      {/* ─── Split-Hero: 60% Promo / 40% Map ─── */}
+      <div className="flex flex-col lg:flex-row gap-4 mb-8">
+        {/* LEFT 60% — Musang King Promo */}
+        <div className="lg:w-[60%] relative rounded-[20px] overflow-hidden">
+          <img
+            src={musangKingHero}
+            alt="Musang King Durian"
+            className="w-full h-full min-h-[320px] object-cover"
+            width={1920}
+            height={640}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
 
-        {/* Content */}
-        <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-12">
-          {/* Watermark slogan */}
-          <p className="text-xs md:text-sm text-muted-foreground/60 font-medium tracking-widest uppercase mb-2">
-            Kongsi the cart, kongsi the cost
-          </p>
-
-          <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-1 tracking-tight">
-            KONGSI THE KING
-          </h2>
-          <p className="text-kongsi-orange font-bold text-lg md:text-xl mb-3">
-            Musang King Durian — Hottest Product 🔥
-          </p>
-
-          <div className="flex items-baseline gap-3 mb-4">
-            <span className="text-2xl md:text-3xl font-extrabold text-white">
-              RM {durianCommunityPrice}/kg
-            </span>
-            <span className="text-base text-white/50 line-through">
-              RM {durianRetailPrice}/kg
-            </span>
-            <span className="text-xs bg-kongsi-green/20 text-kongsi-green px-2 py-0.5 rounded-full font-semibold">
-              Community Price
-            </span>
-          </div>
-
-          {/* Pool progress */}
-          <div className="max-w-sm mb-4">
-            <div className="flex items-center justify-between text-xs text-white/70 mb-1">
-              <span className="flex items-center gap-1">
-                <Users className="h-3 w-3" /> Pool Progress
-              </span>
-              <span className="font-bold text-white">{Math.round(durianPercent)}% Full</span>
-            </div>
-            <div className="h-2.5 rounded-full bg-white/20 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-kongsi-green to-kongsi-orange transition-all duration-1000"
-                style={{ width: `${durianPercent}%` }}
-              />
-            </div>
-            <p className="text-[10px] text-white/50 mt-1">
-              Join now to lock in the lowest price!
-              {durianListing && (() => {
-                const dc = getListingCoords(durianListing.district, durianListing.state);
-                const dist = getDistanceKm(userLocation.lat, userLocation.lng, dc.lat, dc.lng);
-                return <span className="ml-2 text-kongsi-green font-semibold">Closest pool: {dist.toFixed(1)} km away</span>;
-              })()}
+          <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-12">
+            <p className="text-xs md:text-sm text-muted-foreground/60 font-medium tracking-widest uppercase mb-2">
+              Kongsi the cart, kongsi the cost
             </p>
-          </div>
 
-          {/* Join Pool CTA */}
-          <button
-            onClick={() => {
-              if (durianListing) setSelectedItem(durianListing);
-            }}
-            className="w-fit px-8 py-3 rounded-xl bg-gradient-to-r from-kongsi-green to-kongsi-orange text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse-glow"
-          >
-            Join Pool — RM {durianCommunityPrice}/kg
-          </button>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-1 tracking-tight">
+              KONGSI THE KING
+            </h2>
+            <p className="text-accent font-bold text-lg md:text-xl mb-3">
+              Musang King Durian — Hottest Product
+            </p>
+
+            <div className="flex items-baseline gap-3 mb-4">
+              <span className="text-2xl md:text-3xl font-extrabold text-white">
+                RM {durianCommunityPrice}/kg
+              </span>
+              <span className="text-base text-white/50 line-through">
+                RM {durianRetailPrice}/kg
+              </span>
+              <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-semibold">
+                Community Price
+              </span>
+            </div>
+
+            {/* Pool progress */}
+            <div className="max-w-sm mb-4">
+              <div className="flex items-center justify-between text-xs text-white/70 mb-1">
+                <span className="flex items-center gap-1">
+                  <Users className="h-3 w-3" /> Pool Progress
+                </span>
+                <span className="font-bold text-white">{Math.round(durianPercent)}% Full</span>
+              </div>
+              <div className="h-2.5 rounded-full bg-white/20 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-1000"
+                  style={{ width: `${durianPercent}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-white/50 mt-1">
+                Join now to lock in the lowest price!
+                {durianListing && (() => {
+                  const dc = getListingCoords(durianListing.district, durianListing.state);
+                  const dist = getDistanceKm(userLocation.lat, userLocation.lng, dc.lat, dc.lng);
+                  return <span className="ml-2 text-primary font-semibold">Closest pool: {dist.toFixed(1)} km away</span>;
+                })()}
+              </p>
+            </div>
+
+            <button
+              onClick={() => { if (durianListing) setSelectedItem(durianListing); }}
+              className="w-fit px-8 py-3 rounded-xl kongsi-gradient text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse-glow"
+            >
+              Join Pool — RM {durianCommunityPrice}/kg
+            </button>
+          </div>
+        </div>
+
+        {/* RIGHT 40% — Interactive Map + Top 3 */}
+        <div className="lg:w-[40%] rounded-[20px] overflow-hidden border border-border bg-card flex flex-col min-h-[320px]">
+          {!loading && listings.length > 0 ? (
+            <SplitHeroMap
+              listings={listings}
+              userLat={userLocation.lat}
+              userLng={userLocation.lng}
+              onSelectItem={setSelectedItem}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Live Near You Teaser */}
-      {!loading && listings.length > 0 && (
-        <LiveNearYou
-          listings={listings}
-          userLat={userLocation.lat}
-          userLng={userLocation.lng}
-          onExplore={() => navigate("/explore")}
-          onSelectItem={setSelectedItem}
-        />
-      )}
 
       {/* Category Tabs */}
       <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
@@ -216,6 +234,11 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
           Sorted by: Closest to You
           {userLocation.isDefault && <span className="text-muted-foreground ml-1">(default location)</span>}
         </div>
+        {searchQuery.trim() && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-xs font-medium text-accent">
+            Searching: "{searchQuery}"
+          </div>
+        )}
       </div>
 
       {/* Product grid */}
@@ -228,14 +251,14 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
       ) : filteredListings.length === 0 ? (
         <div className="text-center py-16">
           <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground text-lg">No produce available in this category.</p>
+          <p className="text-muted-foreground text-lg">No produce available{searchQuery ? ` for "${searchQuery}"` : " in this category"}.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {filteredListings.map((item) => {
             const categoryData = shopItemCategories.find((c) => c.name === item.category);
             const imageUrl = produceImages[item.category] || "";
-            const icon = categoryData ? categoryData.image : "📦";
+            const icon = categoryData ? categoryData.image : "?";
             const displayName = categoryData?.displayName || item.itemName;
             const demandPercent = item.currentDemand
               ? Math.min(100, (item.currentDemand / (item.targetDemand || 100)) * 100)
@@ -248,7 +271,6 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
                 onClick={() => setSelectedItem(item)}
                 className="flex flex-col rounded-2xl border border-border bg-card hover:border-primary/50 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden group"
               >
-                {/* Image area */}
                 <div className="bg-muted/30 flex items-center justify-center h-36 group-hover:bg-primary/5 transition-colors overflow-hidden">
                   {imageUrl ? (
                     <img
@@ -264,7 +286,6 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
                   )}
                 </div>
 
-                {/* Content */}
                 <div className="p-4 flex flex-col gap-2 flex-1">
                   <span className="text-xs text-primary font-medium flex items-center gap-1">
                     <Leaf className="h-3 w-3" />
@@ -283,7 +304,6 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
                     {item.companyName || "Independent Seller"}
                   </span>
 
-                  {/* Pricing */}
                   <div className="mt-auto pt-2 border-t border-border/50">
                     {isDepositUnlocked ? (
                       <div className="flex items-baseline gap-2">
@@ -310,7 +330,6 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
                     )}
                   </div>
 
-                  {/* Demand progress */}
                   <div className="mt-1">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-[10px] text-muted-foreground flex items-center gap-1">
