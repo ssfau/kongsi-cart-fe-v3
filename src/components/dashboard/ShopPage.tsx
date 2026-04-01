@@ -195,6 +195,15 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
         ))}
       </div>
 
+      {/* Sorting indicator */}
+      <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+          <MapPin className="h-3 w-3" />
+          Sorted by: Closest to You
+          {userLocation.isDefault && <span className="text-muted-foreground ml-1">(default location)</span>}
+        </div>
+      </div>
+
       {/* Product grid */}
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
