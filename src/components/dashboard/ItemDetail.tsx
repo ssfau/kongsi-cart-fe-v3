@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShopItem } from "@/data/shopItems";
+import { shopItemCategories } from "@/data/shopItems";
 import { stateList, malaysiaStates } from "@/data/malaysiaLocations";
+import api from "@/lib/axios";
+import { useToast } from "@/hooks/use-toast";
+import { ListingItem } from "./ShopPage";
 
 interface ItemDetailProps {
-  item: ShopItem;
+  item: ListingItem;
   onBack: () => void;
 }
 
@@ -17,14 +20,52 @@ const ItemDetail = ({ item, onBack }: ItemDetailProps) => {
   const [district, setDistrict] = useState("");
   const [collectionPoint, setCollectionPoint] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const districts = state ? malaysiaStates[state] || [] : [];
-  const totalPrice = (item.currentPrice * quantity).toFixed(2);
-  const priceProgress = (item.depositPrice / item.currentPrice) * 100;
+  const totalPrice = (item.estimatedPriceMax * quantity).toFixed(2);
+  const priceProgress = (item.depositPerUnit / item.estimatedPriceMax) * 100;
 
-  const handleBuy = () => {
-    // TODO: API buy logic here
-    alert(`Order placed: ${quantity}kg of ${item.name} for RM ${totalPrice}`);
+  const categoryData = shopItemCategories.find(c => c.name === item.category);
+  const displayIcon = categoryData ? categoryData.image : "📦";
+
+  const handleBuy = async () => {
+    if (!state || !district || !collectionPoint) {
+      toast({
+        title: "Missing fields",
+        description: "Please select state, district, and collection point.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await api.post("/orders", {
+        listingId: item._id,
+        itemName: item.itemName,
+        image: displayIcon,
+        quantity: quantity,
+        totalPrice: Number(totalPrice),
+        depositAmount: item.depositPerUnit,
+        collectionPoint: collectionPoint
+      });
+      
+      toast({
+        title: "Order placed successfully!",
+        description: `${quantity}kg of ${item.itemName} for RM ${totalPrice}`,
+      });
+      onBack(); // Return to shop or we could redirect to Orders if we imported useNavigate
+    } catch (error: any) {
+      toast({
+        title: "Failed to place order",
+        description: error.response?.data?.message || error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -33,10 +74,11 @@ const ItemDetail = ({ item, onBack }: ItemDetailProps) => {
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
-      <h2 className="text-xl font-bold text-foreground text-center mb-6">{item.name}</h2>
+      <h2 className="text-xl font-bold text-foreground text-center mb-1">{item.itemName}</h2>
+      <p className="text-sm text-muted-foreground text-center mb-6">Sold by: {item.companyName || "Independent Seller"}</p>
 
       <div className="flex justify-center mb-6">
-        <span className="text-7xl">{item.image}</span>
+        <span className="text-7xl">{displayIcon}</span>
       </div>
 
       {/* Location */}
@@ -74,11 +116,11 @@ const ItemDetail = ({ item, onBack }: ItemDetailProps) => {
       <div className="space-y-2 mb-6 p-4 rounded-lg border border-border bg-card">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Deposit Price:</span>
-          <span className="font-medium text-foreground">RM {item.depositPrice.toFixed(2)}/kg</span>
+          <span className="font-medium text-foreground">RM {item.depositPerUnit.toFixed(2)}/kg</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Current Price:</span>
-          <span className="font-medium text-foreground">RM {item.currentPrice.toFixed(2)}/kg</span>
+          <span className="text-muted-foreground">Est. Max Price:</span>
+          <span className="font-medium text-foreground">RM {item.estimatedPriceMax.toFixed(2)}/kg</span>
         </div>
         <Progress value={priceProgress} className="h-2 mt-2" />
       </div>
@@ -109,8 +151,12 @@ const ItemDetail = ({ item, onBack }: ItemDetailProps) => {
           <span>Total Price:</span>
           <span>RM {totalPrice}</span>
         </div>
-        <Button onClick={handleBuy} className="w-full h-12 text-base font-medium">
-          Buy
+        <Button 
+          onClick={handleBuy} 
+          className="w-full h-12 text-base font-medium"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Processing..." : "Buy"}
         </Button>
       </div>
     </div>

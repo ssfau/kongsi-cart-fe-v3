@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,9 +16,12 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import api from "../../lib/axios";
 import { PlusCircle, ArrowLeft } from "lucide-react";
+import { shopItemCategories } from "@/data/shopItems";
 
 interface FormValues {
+  category: string;
   itemName: string;
+  companyName: string;
   unit: string;
   estimatedQty: number;
   depositPerUnit: number;
@@ -39,6 +43,11 @@ const CreateListing = () => {
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormValues>({
     defaultValues: { unit: "kg", collectionPoints: [] },
   });
+  
+  // Actually register the category field manually since it's used in Select
+  useEffect(() => {
+    register("category", { required: "Category is required" });
+  }, [register]);
   const navigate = useNavigate();
   const { toast } = useToast();
   const selectedPoints = watch("collectionPoints") || [];
@@ -55,9 +64,10 @@ const CreateListing = () => {
       await api.post("/listings", data);
       toast({ title: "Listing created!", description: `${data.itemName} has been listed.` });
       navigate("/handler/listings");
-    } catch {
-      toast({ title: "Created locally", description: "API unavailable — listing saved locally." });
-      navigate("/handler/listings");
+    } catch (err: any) {
+      console.error(err.response?.data || err.message);
+      const errMsg = err.response?.data?.error || "API unavailable";
+      toast({ title: "Error creating listing", description: errMsg, variant: "destructive" });
     }
   };
 
@@ -79,15 +89,44 @@ const CreateListing = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Item Name */}
+            {/* Category */}
             <div className="space-y-1.5">
-              <Label htmlFor="itemName">Item Name</Label>
+              <Label>Category / Base Item</Label>
+              <Select onValueChange={(v) => setValue("category", v, { shouldValidate: true })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {shopItemCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      {cat.image} {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
+            </div>
+
+            {/* Item Name / Variant */}
+            <div className="space-y-1.5">
+              <Label htmlFor="itemName">Item Details / Variant</Label>
               <Input
                 id="itemName"
-                placeholder="e.g. Premium Durian (Musang King)"
-                {...register("itemName", { required: "Item name is required" })}
+                placeholder="e.g. Premium Musang King"
+                {...register("itemName", { required: "Item description is required" })}
               />
               {errors.itemName && <p className="text-sm text-destructive">{errors.itemName.message}</p>}
+            </div>
+
+            {/* Company Name */}
+            <div className="space-y-1.5">
+              <Label htmlFor="companyName">Seller / Company Name</Label>
+              <Input
+                id="companyName"
+                placeholder="e.g. Ali Farm / AgroBhd"
+                {...register("companyName", { required: "Company name is required" })}
+              />
+              {errors.companyName && <p className="text-sm text-destructive">{errors.companyName.message}</p>}
             </div>
 
             {/* Unit + Qty row */}
