@@ -29,6 +29,16 @@ interface LocationGroup {
   items: EnrichedItem[];
 }
 
+/** Resolve display name: prioritize backend itemName, fall back to category displayName */
+const getDisplayName = (item: ListingItem): string => {
+  // If itemName exists and isn't just the raw category key, use it
+  if (item.itemName && item.itemName !== item.category) {
+    return item.itemName;
+  }
+  const cat = shopItemCategories.find((c) => c.name === item.category);
+  return cat?.displayName || item.itemName || item.category;
+};
+
 const SplitHeroMap = ({ listings, userLat, userLng, onSelectItem, searchQuery = "" }: SplitHeroMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -39,8 +49,7 @@ const SplitHeroMap = ({ listings, userLat, userLng, onSelectItem, searchQuery = 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       items = items.filter((item) => {
-        const cat = shopItemCategories.find((c) => c.name === item.category);
-        const name = cat?.displayName || item.itemName;
+        const name = getDisplayName(item);
         return (
           name.toLowerCase().includes(q) ||
           item.itemName.toLowerCase().includes(q) ||
@@ -83,9 +92,8 @@ const SplitHeroMap = ({ listings, userLat, userLng, onSelectItem, searchQuery = 
       return `<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;border:3px solid hsl(90,55%,51%);box-shadow:0 0 12px hsl(90,55%,51%,0.4);background:#1a1a1a;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;" />` : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:white;font-size:18px;">?</div>`}</div>`;
     }
 
-    // Multi-item cluster: show up to 3 thumbnails + overflow
     const visible = items.slice(0, Math.min(items.length, 3));
-    const overflow = items.length > 4 ? items.length - 3 : (items.length === 4 ? 0 : 0);
+    const overflow = items.length > 4 ? items.length - 3 : 0;
     const showFourth = items.length === 4;
     const totalCircles = visible.length + (overflow > 0 ? 1 : (showFourth ? 1 : 0));
     const circleSize = 28;
@@ -120,8 +128,8 @@ const SplitHeroMap = ({ listings, userLat, userLng, onSelectItem, searchQuery = 
       <div style="font-size:10px;color:#888;margin-bottom:8px;">${group.items.length} Kongsi Pool${group.items.length > 1 ? "s" : ""} available</div>`;
 
     group.items.forEach((item) => {
-      const cat = shopItemCategories.find((c) => c.name === item.category);
-      const name = cat?.displayName || item.itemName;
+      // Use real backend name in popup
+      const name = getDisplayName(item);
       const demand = item.currentDemand ? Math.min(100, (item.currentDemand / (item.targetDemand || 100)) * 100) : 0;
       html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid #eee;">
         <div style="font-size:12px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</div>
@@ -155,7 +163,6 @@ const SplitHeroMap = ({ listings, userLat, userLng, onSelectItem, searchQuery = 
       maxZoom: 19,
     }).addTo(map);
 
-    // User location
     const userIcon = L.divIcon({
       className: "",
       html: `<div style="position:relative;width:16px;height:16px;">
@@ -167,10 +174,8 @@ const SplitHeroMap = ({ listings, userLat, userLng, onSelectItem, searchQuery = 
     });
     L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
 
-    // Grouped markers
     groups.forEach((group) => {
       const html = buildClusterHtml(group);
-      const isMulti = group.items.length > 1;
       const iconWidth = group.items.length === 1 ? 44 : Math.min(120, 28 + (Math.min(group.items.length, 4) - 1) * 20);
       const iconHeight = group.items.length === 1 ? 44 : 28;
 
@@ -183,15 +188,13 @@ const SplitHeroMap = ({ listings, userLat, userLng, onSelectItem, searchQuery = 
 
       const marker = L.marker([group.lat, group.lng], { icon }).addTo(map);
 
-      if (isMulti) {
+      if (group.items.length > 1) {
         const popup = L.popup({ closeButton: true, className: "kongsi-cluster-popup", maxWidth: 280 })
           .setContent(buildPopupHtml(group));
 
         marker.bindPopup(popup);
-
         marker.on("click", () => marker.openPopup());
 
-        // Handle Join button clicks inside popup
         marker.on("popupopen", () => {
           const container = marker.getPopup()?.getElement();
           if (container) {
@@ -254,8 +257,7 @@ const SplitHeroMap = ({ listings, userLat, userLng, onSelectItem, searchQuery = 
           <MapPin className="h-3 w-3 text-primary" /> Closest to you
         </p>
         {top3.map((item) => {
-          const categoryData = shopItemCategories.find((c) => c.name === item.category);
-          const displayName = categoryData?.displayName || item.itemName;
+          const displayName = getDisplayName(item);
           const demandPercent = item.currentDemand
             ? Math.min(100, (item.currentDemand / (item.targetDemand || 100)) * 100)
             : 0;
