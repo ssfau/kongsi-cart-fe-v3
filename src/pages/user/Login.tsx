@@ -11,16 +11,8 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [checkingBackend, setCheckingBackend] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    api.get("/health").then(() => setCheckingBackend(false)).catch(() => {
-      toast({ title: "Backend unreachable", description: "Skipping login." });
-      navigate("/dashboard", { replace: true });
-    });
-  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

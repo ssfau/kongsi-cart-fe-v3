@@ -17,17 +17,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [checkingBackend, setCheckingBackend] = useState(true);
   const { toast } = useToast();
-
-  useEffect(() => {
-    api.get("/health").then(() => setCheckingBackend(false)).catch(() => {
-      toast({ title: "Backend unreachable", description: "Skipping login." });
-      sessionStorage.setItem("demoUserId", "demo-handler-001");
-      sessionStorage.setItem("demoUserRole", "handler");
-      navigate("/handler/listings", { replace: true });
-    });
-  }, []);
 
   const {
     register,
