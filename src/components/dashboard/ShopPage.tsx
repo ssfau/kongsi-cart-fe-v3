@@ -6,6 +6,7 @@ import api from "@/lib/axios";
 import { Progress } from "@/components/ui/progress";
 import { Leaf, TrendingUp, Users } from "lucide-react";
 import musangKingHero from "@/assets/musang-king-hero.jpg";
+import { produceImages } from "@/assets/produce";
 
 export interface ListingItem {
   _id: string;
