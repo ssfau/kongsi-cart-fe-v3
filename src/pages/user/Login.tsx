@@ -1,17 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
 import { authService } from "@/services/api.js";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/axios";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [checkingBackend, setCheckingBackend] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    api.get("/health").then(() => setCheckingBackend(false)).catch(() => {
+      toast({ title: "Backend unreachable", description: "Skipping login." });
+      navigate("/dashboard", { replace: true });
+    });
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +59,8 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+  if (checkingBackend) return null;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">

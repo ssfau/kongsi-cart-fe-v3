@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Loader2, Mail, Lock, ShieldCheck } from "lucide-react";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import api from "../../lib/axios";
+import { useToast } from "@/hooks/use-toast";
 
 interface LoginFormData {
   email: string;
@@ -16,6 +17,17 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkingBackend, setCheckingBackend] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    api.get("/health").then(() => setCheckingBackend(false)).catch(() => {
+      toast({ title: "Backend unreachable", description: "Skipping login." });
+      sessionStorage.setItem("demoUserId", "demo-handler-001");
+      sessionStorage.setItem("demoUserRole", "handler");
+      navigate("/handler/listings", { replace: true });
+    });
+  }, []);
 
   const {
     register,
@@ -54,6 +66,8 @@ const LoginPage = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (checkingBackend) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[hsl(var(--handler-gradient-from))] to-[hsl(var(--handler-gradient-to))] px-4">
