@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,16 +11,8 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [checkingBackend, setCheckingBackend] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    api.get("/health").then(() => setCheckingBackend(false)).catch(() => {
-      toast({ title: "Backend unreachable", description: "Skipping login." });
-      navigate("/dashboard", { replace: true });
-    });
-  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,21 +27,20 @@ const Login = () => {
 
     setIsLoading(true);
     try {
+      await api.get("/health");
       const result = await authService.login({ email: username, password });
       if (result.success) {
-        toast({
-          title: "Success",
-          description: "Logged in successfully!",
-        });
+        toast({ title: "Success", description: "Logged in successfully!" });
         navigate("/dashboard");
       } else {
-        toast({
-          title: "Login Failed",
-          description: result.error || "Invalid credentials",
-          variant: "destructive",
-        });
+        toast({ title: "Login Failed", description: result.error || "Invalid credentials", variant: "destructive" });
       }
     } catch (error: any) {
+      if (error.code === "ERR_NETWORK" || error.message?.includes("Network")) {
+        toast({ title: "Backend unreachable", description: "Entering demo mode." });
+        navigate("/dashboard");
+        return;
+      }
       toast({
         title: "Login Error",
         description: error.response?.data?.error || "An unexpected error occurred. Please try again.",
@@ -60,7 +51,7 @@ const Login = () => {
     }
   };
 
-  if (checkingBackend) return null;
+  
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Loader2, Mail, Lock, ShieldCheck } from "lucide-react";
@@ -17,17 +17,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [checkingBackend, setCheckingBackend] = useState(true);
   const { toast } = useToast();
-
-  useEffect(() => {
-    api.get("/health").then(() => setCheckingBackend(false)).catch(() => {
-      toast({ title: "Backend unreachable", description: "Skipping login." });
-      sessionStorage.setItem("demoUserId", "demo-handler-001");
-      sessionStorage.setItem("demoUserRole", "handler");
-      navigate("/handler/listings", { replace: true });
-    });
-  }, []);
 
   const {
     register,
@@ -43,19 +33,24 @@ const LoginPage = () => {
     setIsSubmitting(true);
 
     try {
+      await api.get("/health");
       const response = await api.post("/auth/login", {
         email: data.email,
         password: data.password,
         role: "handler",
       });
-
       const { id, role } = response.data.data.user;
-
       sessionStorage.setItem("demoUserId", id);
       sessionStorage.setItem("demoUserRole", role);
-
       navigate("/handler/listings");
     } catch (err: any) {
+      if (err.code === "ERR_NETWORK" || err.message?.includes("Network")) {
+        toast({ title: "Backend unreachable", description: "Entering demo mode." });
+        sessionStorage.setItem("demoUserId", "demo-handler-001");
+        sessionStorage.setItem("demoUserRole", "handler");
+        navigate("/handler/listings");
+        return;
+      }
       const apiError = err.response?.data?.error || err.response?.data?.message;
       if (apiError) {
         setError(apiError);
@@ -67,7 +62,7 @@ const LoginPage = () => {
     }
   };
 
-  if (checkingBackend) return null;
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[hsl(var(--handler-gradient-from))] to-[hsl(var(--handler-gradient-to))] px-4">
