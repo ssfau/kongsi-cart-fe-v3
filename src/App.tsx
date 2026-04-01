@@ -12,6 +12,7 @@ import LoginSeller from "./pages/seller/LoginSeller";
 import HandlerListings from "./pages/seller/HandlerListings";
 import CreateListings from "./pages/seller/CreateListings";
 import DemandDashboard from "./pages/seller/DemandDashboard";
+import Explore from "./pages/user/Explore";
 import { HandlerProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/explore" element={<Explore />} />
           <Route path="/seller/login" element={<LoginSeller />} />
           
           {/* Handler Protected Routes */}

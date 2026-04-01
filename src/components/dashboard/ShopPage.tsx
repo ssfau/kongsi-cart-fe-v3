@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { shopItemCategories, type ShopItemCategory } from "@/data/shopItems";
 import { fakeListings } from "@/data/fakeListings";
 import ItemDetail from "./ItemDetail";
+import LiveNearYou from "./LiveNearYou";
 import api from "@/lib/axios";
 import { Progress } from "@/components/ui/progress";
 import { Leaf, TrendingUp, Users, MapPin } from "lucide-react";
@@ -38,6 +40,7 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
   const [activeGroup, setActiveGroup] = useState<CategoryGroup>("All");
   const userLocation = useUserLocation();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Notify user if location is default
   useEffect(() => {
@@ -177,6 +180,17 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
           </button>
         </div>
       </div>
+
+      {/* Live Near You Teaser */}
+      {!loading && listings.length > 0 && (
+        <LiveNearYou
+          listings={listings}
+          userLat={userLocation.lat}
+          userLng={userLocation.lng}
+          onExplore={() => navigate("/explore")}
+          onSelectItem={setSelectedItem}
+        />
+      )}
 
       {/* Category Tabs */}
       <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
