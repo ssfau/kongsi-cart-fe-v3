@@ -1,14 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Home, ShoppingCart, User, Settings, Bell,
-  Package, CreditCard, Menu
+  Home, Package, CreditCard, User, Bell,
+  Menu, Compass, LogOut, Search
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 import ShopPage from "@/components/dashboard/ShopPage";
 import OrdersPage from "@/components/dashboard/OrdersPage";
 import PaymentMethodPage from "@/components/dashboard/PaymentMethodPage";
@@ -25,6 +24,7 @@ const Dashboard = () => {
   const [cartCount, setCartCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -32,9 +32,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const user = authService.getCurrentUser();
-    if (user && user.name) {
-      setUserName(user.name);
-    }
+    if (user && user.name) setUserName(user.name);
   }, []);
 
   useEffect(() => {
@@ -49,83 +47,81 @@ const Dashboard = () => {
 
   const addNotification = useCallback((message: string) => {
     setNotifications(prev => [
-      {
-        id: `notif-${Date.now()}`,
-        message,
-        timestamp: new Date(),
-        read: false,
-      },
+      { id: `notif-${Date.now()}`, message, timestamp: new Date(), read: false },
       ...prev,
     ]);
   }, []);
 
-  const clearNotifications = useCallback(() => {
-    setNotifications([]);
-  }, []);
+  const clearNotifications = useCallback(() => setNotifications([]), []);
 
-  const navItems: { key: Tab; label: string; icon: React.ReactNode }[] = [
+  const handleLogout = useCallback(() => {
+    authService.logout();
+    navigate("/");
+  }, [navigate]);
+
+  const navItems: { key: Tab | "explore"; label: string; icon: React.ReactNode }[] = [
     { key: "home", label: "Home", icon: <Home className="h-5 w-5" /> },
     { key: "orders", label: "Orders", icon: <Package className="h-5 w-5" /> },
     { key: "payment", label: "Payments", icon: <CreditCard className="h-5 w-5" /> },
+    { key: "explore", label: "Explore", icon: <Compass className="h-5 w-5" /> },
     { key: "profile", label: "Profile", icon: <User className="h-5 w-5" /> },
   ];
 
-  const handleNavClick = (key: Tab) => {
+  const handleNavClick = (key: string) => {
     if (key === "profile") navigate("/settings");
-    else setActiveTab(key);
+    else if (key === "explore") navigate("/explore");
+    else setActiveTab(key as Tab);
     setSidebarOpen(false);
   };
 
+  const navButton = (item: typeof navItems[0], showLabel: boolean, labelClass?: string) => (
+    <button
+      key={item.key}
+      onClick={() => handleNavClick(item.key)}
+      className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 w-full ${
+        activeTab === item.key
+          ? "bg-[hsl(90,55%,51%)]/15 text-[hsl(90,55%,51%)]"
+          : "text-[hsl(90,15%,70%)] hover:bg-[hsl(150,15%,18%)] hover:text-[hsl(90,15%,92%)]"
+      }`}
+      title={item.label}
+    >
+      <span className="shrink-0">{item.icon}</span>
+      {showLabel && <span className={labelClass}>{item.label}</span>}
+    </button>
+  );
+
   const mobileNav = (
     <nav className="flex flex-col gap-1 p-3">
-      {navItems.map((item) => (
-        <button
-          key={item.key}
-          onClick={() => handleNavClick(item.key)}
-          className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-            activeTab === item.key
-              ? "bg-primary/15 text-primary"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          }`}
-        >
-          {item.icon}
-          <span>{item.label}</span>
-        </button>
-      ))}
+      {navItems.map((item) => navButton(item, true))}
+      <div className="border-t border-border my-2" />
+      <button
+        onClick={handleLogout}
+        className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-all w-full"
+      >
+        <LogOut className="h-5 w-5" />
+        <span>Log Out</span>
+      </button>
     </nav>
   );
 
   const desktopSidebar = (
-    <aside className="w-16 hover:w-48 transition-all duration-300 border-r border-border bg-card flex flex-col items-center group overflow-hidden shrink-0 relative">
+    <aside className="w-16 hover:w-48 transition-all duration-300 border-r border-[hsl(150,15%,12%)] flex flex-col items-center group overflow-hidden shrink-0 relative"
+      style={{ backgroundColor: "hsl(195, 30%, 15%)" }}
+    >
       <div className="p-3 mt-2 mb-4">
         <img src={logo} alt="Kongsi Kart" className="h-10 w-10 rounded-xl object-cover" />
       </div>
 
       <nav className="flex flex-col gap-1 px-2 w-full">
-        {navItems.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => handleNavClick(item.key)}
-            className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-              activeTab === item.key
-                ? "bg-primary/15 text-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-            title={item.label}
-          >
-            <span className="shrink-0">{item.icon}</span>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              {item.label}
-            </span>
-          </button>
-        ))}
+        {navItems.map((item) => navButton(item, true, "opacity-0 group-hover:opacity-100 transition-opacity duration-200"))}
       </nav>
 
-      <div className="mt-auto mb-4 px-2 w-full">
+      <div className="mt-auto mb-4 px-2 w-full space-y-1">
+        {/* Notifications */}
         <button
           onClick={() => setNotifPanelOpen(!notifPanelOpen)}
-          className="relative flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all w-full whitespace-nowrap"
-          title="Notifications"
+          className="relative flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-[hsl(90,15%,70%)] hover:bg-[hsl(150,15%,18%)] hover:text-[hsl(90,15%,92%)] transition-all w-full whitespace-nowrap"
+          title="Inbox"
         >
           <span className="shrink-0 relative">
             <Bell className="h-5 w-5" />
@@ -135,9 +131,7 @@ const Dashboard = () => {
               </Badge>
             )}
           </span>
-          <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            Inbox
-          </span>
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">Inbox</span>
         </button>
 
         <NotificationPanel
@@ -146,6 +140,16 @@ const Dashboard = () => {
           onClose={() => setNotifPanelOpen(false)}
           onClear={clearNotifications}
         />
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-destructive/70 hover:bg-destructive/10 hover:text-destructive transition-all w-full whitespace-nowrap"
+          title="Log Out"
+        >
+          <LogOut className="h-5 w-5 shrink-0" />
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">Log Out</span>
+        </button>
       </div>
     </aside>
   );
@@ -182,6 +186,8 @@ const Dashboard = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search produce..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 w-64 h-9 bg-muted/50 border-none rounded-xl text-sm"
           />
         </div>
@@ -190,19 +196,7 @@ const Dashboard = () => {
           onClick={() => navigate("/settings")}
           className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
         >
-          <Settings className="h-5 w-5" />
-        </button>
-
-        <button
-          onClick={() => setActiveTab("orders")}
-          className="relative p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-        >
-          <ShoppingCart className="h-5 w-5" />
-          {cartCount > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] kongsi-gradient border-0 text-white">
-              {cartCount}
-            </Badge>
-          )}
+          <CreditCard className="h-5 w-5" />
         </button>
       </div>
     </header>
@@ -211,13 +205,13 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "home":
-        return <ShopPage onNotification={addNotification} />;
+        return <ShopPage onNotification={addNotification} searchQuery={searchQuery} />;
       case "orders":
         return <OrdersPage />;
       case "payment":
         return <PaymentMethodPage />;
       default:
-        return <ShopPage onNotification={addNotification} />;
+        return <ShopPage onNotification={addNotification} searchQuery={searchQuery} />;
     }
   };
 
