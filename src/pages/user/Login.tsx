@@ -27,13 +27,15 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      await api.get("/health");
-      const result = await authService.login({ email: username, password });
-      if (result.success) {
+      const response = await api.post("/auth/login", { email: username, password });
+      const result = response.data;
+      if (result.success && result.data?.token) {
+        localStorage.setItem('token', result.data.token);
+        localStorage.setItem('user', JSON.stringify(result.data.user));
         toast({ title: "Success", description: "Logged in successfully!" });
         navigate("/dashboard");
       } else {
-        toast({ title: "Login Failed", description: result.error || "Invalid credentials", variant: "destructive" });
+        toast({ title: "Login Failed", description: result.error || result.message || "Invalid credentials", variant: "destructive" });
       }
     } catch (error: any) {
       if (error.code === "ERR_NETWORK" || error.message?.includes("Network")) {
@@ -41,9 +43,10 @@ const Login = () => {
         navigate("/dashboard");
         return;
       }
+      const msg = error.response?.data?.error || error.response?.data?.message || error.message || "An unexpected error occurred.";
       toast({
         title: "Login Error",
-        description: error.response?.data?.error || "An unexpected error occurred. Please try again.",
+        description: msg,
         variant: "destructive",
       });
     } finally {
