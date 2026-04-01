@@ -1,8 +1,7 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,13 +14,19 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import api from "../../lib/axios";
-import { PlusCircle, ArrowLeft } from "lucide-react";
+import { PlusCircle, ArrowLeft, Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { shopItemCategories } from "@/data/shopItems";
+import { stateList, malaysiaStates } from "@/data/malaysiaLocations";
 
 interface FormValues {
   category: string;
   itemName: string;
-  companyName: string;
+  state: string;
+  district: string;
   unit: string;
   estimatedQty: number;
   depositPerUnit: number;
@@ -31,22 +36,27 @@ interface FormValues {
   collectionPoints: string[];
 }
 
-const COLLECTION_POINTS = [
-  "KL Sentral Hub",
-  "Petaling Jaya Centre",
-  "Shah Alam Depot",
-  "Subang Jaya Point",
-  "Cyberjaya Hub",
-];
-
 const CreateListing = () => {
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, setValue, watch, formState: { errors }, clearErrors } = useForm<FormValues>({
     defaultValues: { unit: "kg", collectionPoints: [] },
   });
   
+  const [stateOpen, setStateOpen] = React.useState(false);
+  const [districtOpen, setDistrictOpen] = React.useState(false);
+
+  const selectedState = watch("state");
+  const selectedDistrict = watch("district");
+  const districts = selectedState ? malaysiaStates[selectedState] || [] : [];
+  const currentCollectionPoints = selectedDistrict 
+    ? [`${selectedDistrict} Point A`, `${selectedDistrict} Point B`, `${selectedDistrict} Point C`] 
+    : [];
+
   // Actually register the category field manually since it's used in Select
   useEffect(() => {
     register("category", { required: "Category is required" });
+    register("state", { required: "State is required" });
+    register("district", { required: "District is required" });
+    register("unit");
   }, [register]);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -61,6 +71,7 @@ const CreateListing = () => {
 
   const onSubmit = async (data: FormValues) => {
     try {
+      data.estimatedPriceMin = data.depositPerUnit;
       await api.post("/listings", data);
       toast({ title: "Listing created!", description: `${data.itemName} has been listed.` });
       navigate("/handler/listings");
@@ -118,17 +129,6 @@ const CreateListing = () => {
               {errors.itemName && <p className="text-sm text-destructive">{errors.itemName.message}</p>}
             </div>
 
-            {/* Company Name */}
-            <div className="space-y-1.5">
-              <Label htmlFor="companyName">Seller / Company Name</Label>
-              <Input
-                id="companyName"
-                placeholder="e.g. Ali Farm / AgroBhd"
-                {...register("companyName", { required: "Company name is required" })}
-              />
-              {errors.companyName && <p className="text-sm text-destructive">{errors.companyName.message}</p>}
-            </div>
-
             {/* Unit + Qty row */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -176,38 +176,21 @@ const CreateListing = () => {
               {errors.depositPerUnit && <p className="text-sm text-destructive">{errors.depositPerUnit.message}</p>}
             </div>
 
-            {/* Price range */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="estimatedPriceMin">Est. Price Min (RM)</Label>
-                <Input
-                  id="estimatedPriceMin"
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  {...register("estimatedPriceMin", {
-                    required: "Required",
-                    valueAsNumber: true,
-                    min: { value: 0, message: "Cannot be negative" },
-                  })}
-                />
-                {errors.estimatedPriceMin && <p className="text-sm text-destructive">{errors.estimatedPriceMin.message}</p>}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="estimatedPriceMax">Est. Price Max (RM)</Label>
-                <Input
-                  id="estimatedPriceMax"
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  {...register("estimatedPriceMax", {
-                    required: "Required",
-                    valueAsNumber: true,
-                    min: { value: 0, message: "Cannot be negative" },
-                  })}
-                />
-                {errors.estimatedPriceMax && <p className="text-sm text-destructive">{errors.estimatedPriceMax.message}</p>}
-              </div>
+            {/* Price Max */}
+            <div className="space-y-1.5">
+              <Label htmlFor="estimatedPriceMax">Est. Highest Price (RM)</Label>
+              <Input
+                id="estimatedPriceMax"
+                type="number"
+                step="0.01"
+                min={0}
+                {...register("estimatedPriceMax", {
+                  required: "Required",
+                  valueAsNumber: true,
+                  min: { value: 0, message: "Cannot be negative" },
+                })}
+              />
+              {errors.estimatedPriceMax && <p className="text-sm text-destructive">{errors.estimatedPriceMax.message}</p>}
             </div>
 
             {/* Deadline */}
@@ -225,23 +208,133 @@ const CreateListing = () => {
               {errors.deadline && <p className="text-sm text-destructive">{errors.deadline.message}</p>}
             </div>
 
+            {/* Location (State & District) */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5 flex flex-col">
+                <Label>State</Label>
+                <Popover open={stateOpen} onOpenChange={setStateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "justify-between font-normal bg-card w-full",
+                        !selectedState && "text-muted-foreground"
+                      )}
+                    >
+                      {selectedState || "Select state"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[250px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search state..." />
+                      <CommandList>
+                        <CommandEmpty>No state found.</CommandEmpty>
+                        <CommandGroup>
+                          {stateList.map((s) => (
+                            <CommandItem
+                              key={s}
+                              value={s}
+                              onSelect={() => {
+                                setValue("state", s, { shouldValidate: true });
+                                setValue("district", ""); // Reset district when state changes
+                                setValue("collectionPoints", []); // Reset collection points
+                                clearErrors("district");
+                                setStateOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  s === selectedState ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {s}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {errors.state && <p className="text-sm text-destructive">{errors.state.message}</p>}
+              </div>
+
+              <div className="space-y-1.5 flex flex-col">
+                <Label>District</Label>
+                <Popover open={districtOpen} onOpenChange={setDistrictOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      disabled={!selectedState}
+                      className={cn(
+                        "justify-between font-normal bg-card w-full",
+                        !selectedDistrict && "text-muted-foreground"
+                      )}
+                    >
+                      {selectedDistrict || "Select district"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[250px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search district..." />
+                      <CommandList>
+                        <CommandEmpty>No district found.</CommandEmpty>
+                        <CommandGroup>
+                          {districts.map((d) => (
+                            <CommandItem
+                              key={d}
+                              value={d}
+                              onSelect={() => {
+                                setValue("district", d, { shouldValidate: true });
+                                setValue("collectionPoints", []); // Reset collection points on district change
+                                setDistrictOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  d === selectedDistrict ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {d}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {errors.district && <p className="text-sm text-destructive">{errors.district.message}</p>}
+              </div>
+            </div>
+
             {/* Collection Points */}
             <div className="space-y-2">
               <Label>Collection Points</Label>
-              <div className="space-y-2">
-                {COLLECTION_POINTS.map((point) => (
-                  <label
-                    key={point}
-                    className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:bg-accent/50 cursor-pointer transition-colors"
-                  >
-                    <Checkbox
-                      checked={selectedPoints.includes(point)}
-                      onCheckedChange={() => togglePoint(point)}
-                    />
-                    <span className="text-sm">{point}</span>
-                  </label>
-                ))}
-              </div>
+              {currentCollectionPoints.length === 0 ? (
+                <p className="text-sm text-muted-foreground p-2 border border-border rounded-lg bg-accent/30 text-center">
+                  Please select a district first.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {currentCollectionPoints.map((point) => (
+                    <label
+                      key={point}
+                      className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:bg-accent/50 cursor-pointer transition-colors"
+                    >
+                      <Checkbox
+                        checked={selectedPoints.includes(point)}
+                        onCheckedChange={() => togglePoint(point)}
+                      />
+                      <span className="text-sm">{point}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
             <Button type="submit" className="w-full">

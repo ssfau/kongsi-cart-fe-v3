@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { ArrowLeft, Plus, Minus } from "lucide-react";
+import { ArrowLeft, Plus, Minus, Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { shopItemCategories } from "@/data/shopItems";
-import { stateList, malaysiaStates } from "@/data/malaysiaLocations";
 import api from "@/lib/axios";
 import { useToast } from "@/hooks/use-toast";
 import { ListingItem } from "./ShopPage";
@@ -16,14 +15,10 @@ interface ItemDetailProps {
 }
 
 const ItemDetail = ({ item, onBack }: ItemDetailProps) => {
-  const [state, setState] = useState("");
-  const [district, setDistrict] = useState("");
-  const [collectionPoint, setCollectionPoint] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const districts = state ? malaysiaStates[state] || [] : [];
   const totalPrice = (item.estimatedPriceMax * quantity).toFixed(2);
   const priceProgress = (item.depositPerUnit / item.estimatedPriceMax) * 100;
 
@@ -31,15 +26,6 @@ const ItemDetail = ({ item, onBack }: ItemDetailProps) => {
   const displayIcon = categoryData ? categoryData.image : "📦";
 
   const handleBuy = async () => {
-    if (!state || !district || !collectionPoint) {
-      toast({
-        title: "Missing fields",
-        description: "Please select state, district, and collection point.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       await api.post("/orders", {
@@ -48,8 +34,7 @@ const ItemDetail = ({ item, onBack }: ItemDetailProps) => {
         image: displayIcon,
         quantity: quantity,
         totalPrice: Number(totalPrice),
-        depositAmount: item.depositPerUnit,
-        collectionPoint: collectionPoint
+        depositAmount: item.depositPerUnit
       });
       
       toast({
@@ -77,39 +62,18 @@ const ItemDetail = ({ item, onBack }: ItemDetailProps) => {
       <h2 className="text-xl font-bold text-foreground text-center mb-1">{item.itemName}</h2>
       <p className="text-sm text-muted-foreground text-center mb-6">Sold by: {item.companyName || "Independent Seller"}</p>
 
-      <div className="flex justify-center mb-6">
-        <span className="text-7xl">{displayIcon}</span>
+      {/* Location Info */}
+      <div className="flex flex-col items-center gap-1 text-sm bg-muted/50 p-3 rounded-lg mb-6">
+        {item.collectionPoint && (
+          <p><span className="font-semibold text-foreground">Collection Point:</span> {item.collectionPoint}</p>
+        )}
+        {(item.district || item.state) && (
+          <p className="text-muted-foreground">{[item.district, item.state].filter(Boolean).join(", ")}</p>
+        )}
       </div>
 
-      {/* Location */}
-      <div className="space-y-4 mb-6">
-        <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">State:</label>
-          <Select value={state} onValueChange={(v) => { setState(v); setDistrict(""); }}>
-            <SelectTrigger className="bg-card"><SelectValue placeholder="Select state" /></SelectTrigger>
-            <SelectContent>
-              {stateList.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">District:</label>
-          <Select value={district} onValueChange={setDistrict} disabled={!state}>
-            <SelectTrigger className="bg-card"><SelectValue placeholder="Select district" /></SelectTrigger>
-            <SelectContent>
-              {districts.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Collection Point:</label>
-          <Input
-            placeholder="Enter collection point"
-            value={collectionPoint}
-            onChange={(e) => setCollectionPoint(e.target.value)}
-            className="bg-card"
-          />
-        </div>
+      <div className="flex justify-center mb-6">
+        <span className="text-7xl">{displayIcon}</span>
       </div>
 
       {/* Pricing */}
