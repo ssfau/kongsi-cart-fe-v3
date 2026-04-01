@@ -63,9 +63,11 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
           targetDemand: item.targetDemand || 100,
         }));
         setListings(enrichedListings);
+        setIsBackendData(true);
       } catch (err) {
         console.warn("Backend unreachable, using synthetic listings", err);
         setListings(fakeListings);
+        setIsBackendData(false);
       } finally {
         setLoading(false);
       }
