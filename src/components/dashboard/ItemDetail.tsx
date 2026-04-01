@@ -36,6 +36,7 @@ const ItemDetail = ({ item, onBack, onNotification }: ItemDetailProps) => {
 
   const categoryData = shopItemCategories.find(c => c.name === item.category);
   const displayIcon = categoryData ? categoryData.image : "📦";
+  const imageUrl = produceImages[item.category] || "";
 
   const handleBuy = async () => {
     setIsSubmitting(true);
