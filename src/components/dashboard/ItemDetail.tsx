@@ -100,9 +100,13 @@ const ItemDetail = ({ item, onBack, onNotification }: ItemDetailProps) => {
             </p>
           </div>
 
-          {/* Icon display */}
-          <div className="bg-muted/40 rounded-2xl p-8 flex items-center justify-center">
-            <span className="text-8xl">{displayIcon}</span>
+          {/* Product image */}
+          <div className="bg-muted/40 rounded-2xl overflow-hidden flex items-center justify-center h-64">
+            {imageUrl ? (
+              <img src={imageUrl} alt={item.itemName} className="w-full h-full object-cover" width={512} height={512} />
+            ) : (
+              <span className="text-8xl">{displayIcon}</span>
+            )}
           </div>
 
           {/* Community Demand Bar */}
