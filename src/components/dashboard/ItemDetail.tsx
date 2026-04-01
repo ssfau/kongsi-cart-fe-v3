@@ -177,13 +177,11 @@ const ItemDetail = ({ item, onBack, onNotification }: ItemDetailProps) => {
                 </div>
               )}
 
-              {/* Map placeholder */}
-              <div className="rounded-xl bg-muted/60 border border-border/50 h-40 flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <MapPin className="h-8 w-8 mx-auto mb-2 text-kongsi-green/50" />
-                  <p className="text-xs">Interactive map — pin your delivery location</p>
-                </div>
-              </div>
+              <CollectionPointMap
+                district={item.district}
+                state={item.state}
+                collectionPoint={item.collectionPoint}
+              />
             </div>
 
             {/* Quantity Selector */}
