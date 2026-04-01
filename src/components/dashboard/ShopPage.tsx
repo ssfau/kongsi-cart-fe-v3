@@ -201,6 +201,7 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
               userLat={userLocation.lat}
               userLng={userLocation.lng}
               onSelectItem={setSelectedItem}
+              searchQuery={searchQuery}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center">
