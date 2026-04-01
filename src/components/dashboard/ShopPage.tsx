@@ -54,13 +54,22 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
     const fetchListings = async () => {
       try {
         const response = await api.get("/listings");
-        const enrichedListings = response.data.data.map((item: ListingItem) => ({
-          ...item,
+        const rawData = Array.isArray(response.data) ? response.data : (response.data?.data || response.data?.listings || []);
+        if (!Array.isArray(rawData) || rawData.length === 0) {
+          throw new Error("No listings from backend");
+        }
+        const enrichedListings = rawData.map((item: any) => ({
+          _id: item._id || item.id || crypto.randomUUID(),
+          category: item.category || "Tomato",
+          itemName: item.itemName || item.name || item.title || item.category || "Fresh Produce",
+          companyName: item.companyName || item.company_name,
+          depositPerUnit: Number(item.depositPerUnit ?? item.deposit_per_unit ?? 0),
+          estimatedPriceMax: Number(item.estimatedPriceMax ?? item.estimated_price_max ?? 0),
           state: item.state || "Unspecified Location",
           district: item.district || "Unspecified District",
-          collectionPoint: item.collectionPoint || "Main Hub",
-          currentDemand: item.currentDemand || Math.floor(Math.random() * 100),
-          targetDemand: item.targetDemand || 100,
+          collectionPoint: item.collectionPoint || item.collection_point || "Main Hub",
+          currentDemand: item.currentDemand ?? item.current_demand ?? Math.floor(Math.random() * 100),
+          targetDemand: item.targetDemand ?? item.target_demand ?? 100,
         }));
         setListings(enrichedListings);
         setIsBackendData(true);
