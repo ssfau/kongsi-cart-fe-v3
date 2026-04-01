@@ -74,7 +74,9 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
     const fetchListings = async () => {
       try {
         const response = await api.get("/listings");
+        console.log("API Raw Response:", response.data);
         const rawData = Array.isArray(response.data) ? response.data : (response.data?.data || response.data?.listings || []);
+        console.log("API Parsed Data:", rawData);
         if (!Array.isArray(rawData) || rawData.length === 0) {
           throw new Error("No listings from backend");
         }
@@ -91,10 +93,12 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
           currentDemand: item.currentDemand ?? item.current_demand ?? Math.floor(Math.random() * 100),
           targetDemand: item.targetDemand ?? item.target_demand ?? 100,
         }));
+        console.log("API Enriched Listings:", enrichedListings);
         setListings(enrichedListings);
         setIsBackendData(true);
       } catch (err) {
-        console.warn("Backend unreachable, using synthetic listings", err);
+        console.error("API Error:", err);
+        console.warn("Backend unreachable, using synthetic listings");
         setListings(fakeListings);
         setIsBackendData(false);
       } finally {
