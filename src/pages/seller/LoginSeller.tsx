@@ -33,19 +33,24 @@ const LoginPage = () => {
     setIsSubmitting(true);
 
     try {
+      await api.get("/health");
       const response = await api.post("/auth/login", {
         email: data.email,
         password: data.password,
         role: "handler",
       });
-
       const { id, role } = response.data.data.user;
-
       sessionStorage.setItem("demoUserId", id);
       sessionStorage.setItem("demoUserRole", role);
-
       navigate("/handler/listings");
     } catch (err: any) {
+      if (err.code === "ERR_NETWORK" || err.message?.includes("Network")) {
+        toast({ title: "Backend unreachable", description: "Entering demo mode." });
+        sessionStorage.setItem("demoUserId", "demo-handler-001");
+        sessionStorage.setItem("demoUserRole", "handler");
+        navigate("/handler/listings");
+        return;
+      }
       const apiError = err.response?.data?.error || err.response?.data?.message;
       if (apiError) {
         setError(apiError);
