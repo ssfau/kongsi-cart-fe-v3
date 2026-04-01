@@ -72,12 +72,22 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
   const categoryGroups: CategoryGroup[] = ["All", "Leafy Greens", "Vegetables", "Fruits"];
 
   const filteredListings = useMemo(() => {
-    if (activeGroup === "All") return listings;
-    const categoryNames = shopItemCategories
-      .filter((c) => c.group === activeGroup)
-      .map((c) => c.name);
-    return listings.filter((item) => categoryNames.includes(item.category));
-  }, [listings, activeGroup]);
+    let items = listings;
+    if (activeGroup !== "All") {
+      const categoryNames = shopItemCategories
+        .filter((c) => c.group === activeGroup)
+        .map((c) => c.name);
+      items = items.filter((item) => categoryNames.includes(item.category));
+    }
+    // Sort by distance
+    return items
+      .map((item) => {
+        const coords = getListingCoords(item.district, item.state);
+        const distance = getDistanceKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
+        return { ...item, _distance: distance };
+      })
+      .sort((a, b) => a._distance - b._distance);
+  }, [listings, activeGroup, userLocation.lat, userLocation.lng]);
 
   if (selectedItem) {
     return <ItemDetail item={selectedItem} onBack={() => setSelectedItem(null)} onNotification={onNotification} />;
