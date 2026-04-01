@@ -54,7 +54,11 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
     const fetchListings = async () => {
       try {
         const response = await api.get("/listings");
-        const enrichedListings = response.data.data.map((item: ListingItem) => ({
+        const rawData = Array.isArray(response.data) ? response.data : (response.data?.data || response.data?.listings || []);
+        if (!Array.isArray(rawData) || rawData.length === 0) {
+          throw new Error("No listings from backend");
+        }
+        const enrichedListings = rawData.map((item: any) => ({
           ...item,
           state: item.state || "Unspecified Location",
           district: item.district || "Unspecified District",
