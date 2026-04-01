@@ -7,7 +7,6 @@ import SplitHeroMap from "./SplitHeroMap";
 import api from "@/lib/axios";
 import { Progress } from "@/components/ui/progress";
 import { Leaf, TrendingUp, Users, MapPin } from "lucide-react";
-import musangKingHero from "@/assets/musang-king-hero.jpg";
 import { produceImages } from "@/assets/produce";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { getListingCoords, getDistanceKm } from "@/data/locationCoordinates";
@@ -33,6 +32,27 @@ interface ShopPageProps {
   onNotification?: (msg: string) => void;
   searchQuery?: string;
 }
+
+/** Resolve display name: prioritize backend itemName, fall back to category displayName */
+const getDisplayName = (item: ListingItem, isBackend: boolean): string => {
+  if (isBackend && item.itemName && item.itemName !== item.category) {
+    return item.itemName;
+  }
+  const cat = shopItemCategories.find((c) => c.name === item.category);
+  return cat?.displayName || item.itemName || item.category;
+};
+
+// ─── Hero banner category config ───
+interface CategoryHeroConfig {
+  catchphrase: string;
+  nameColor: string; // hex
+}
+
+const categoryHeroMap: Record<string, CategoryHeroConfig> = {
+  Fruits: { catchphrase: "KONGSI THE KING", nameColor: "#F7941E" },
+  "Leafy Greens": { catchphrase: "CRUNCH THE COST", nameColor: "#2D5A27" },
+  Vegetables: { catchphrase: "FRESHER, TOGETHER", nameColor: "#8CC63F" },
+};
 
 const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
   const [selectedItem, setSelectedItem] = useState<ListingItem | null>(null);
@@ -89,12 +109,10 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
   const filteredListings = useMemo(() => {
     let items = listings;
 
-    // Search filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       items = items.filter((item) => {
-        const categoryData = shopItemCategories.find((c) => c.name === item.category);
-        const displayName = categoryData?.displayName || item.itemName;
+        const displayName = getDisplayName(item, isBackendData);
         return (
           displayName.toLowerCase().includes(q) ||
           item.itemName.toLowerCase().includes(q) ||
@@ -119,33 +137,63 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
         return { ...item, _distance: distance };
       })
       .sort((a, b) => a._distance - b._distance);
-  }, [listings, activeGroup, userLocation.lat, userLocation.lng, searchQuery]);
+  }, [listings, activeGroup, userLocation.lat, userLocation.lng, searchQuery, isBackendData]);
 
   if (selectedItem) {
     return <ItemDetail item={selectedItem} onBack={() => setSelectedItem(null)} onNotification={onNotification} />;
   }
 
-  // Durian hero data
-  const durianListing = listings.find((l) => l.category === "Durian");
-  const durianDemand = durianListing?.currentDemand ?? 85;
-  const durianTarget = durianListing?.targetDemand ?? 100;
-  const durianPercent = Math.min(100, (durianDemand / durianTarget) * 100);
-  const durianCommunityPrice = durianListing?.depositPerUnit?.toFixed(2) ?? "45.00";
-  const durianRetailPrice = durianListing?.estimatedPriceMax?.toFixed(2) ?? "75.00";
+  // ─── Weighted "Smart" Hero Banner ───
+  // Score = (demandPercent * 0.7) + (inverseDistance * 0.3)
+  const heroItem = useMemo(() => {
+    if (listings.length === 0) return null;
+
+    const scored = listings.map((item) => {
+      const demandPercent = item.currentDemand
+        ? Math.min(100, (item.currentDemand / (item.targetDemand || 100)) * 100)
+        : 0;
+      const coords = getListingCoords(item.district, item.state);
+      const dist = getDistanceKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
+      // Inverse distance: closer = higher score (cap at 100)
+      const inverseDist = Math.max(0, 100 - dist);
+      const score = demandPercent * 0.7 + inverseDist * 0.3;
+      return { item, score, demandPercent, dist };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored[0] || null;
+  }, [listings, userLocation.lat, userLocation.lng]);
+
+  // Resolve hero config
+  const heroListing = heroItem?.item || null;
+  const heroName = heroListing ? getDisplayName(heroListing, isBackendData) : "Musang King Durian";
+  const heroCategory = heroListing?.category || "Durian";
+  const heroCatData = shopItemCategories.find((c) => c.name === heroCategory);
+  const heroGroup = heroCatData?.group || "Fruits";
+  const heroConfig = categoryHeroMap[heroGroup] || categoryHeroMap["Fruits"];
+  const heroDemand = heroItem?.demandPercent ?? 85;
+  const heroCommunityPrice = (heroListing?.depositPerUnit ?? 45).toFixed(2);
+  const heroRetailPrice = (heroListing?.estimatedPriceMax ?? 75).toFixed(2);
+  const heroImage = produceImages[heroCategory] || produceImages["Durian"] || "";
+  const heroDistance = heroItem?.dist;
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
       {/* ─── Split-Hero: 60% Promo / 40% Map ─── */}
       <div className="flex flex-col lg:flex-row gap-4 mb-8">
-        {/* LEFT 60% — Musang King Promo */}
-        <div className="lg:w-[60%] relative rounded-[20px] overflow-hidden">
-          <img
-            src={musangKingHero}
-            alt="Musang King Durian"
-            className="w-full h-full min-h-[320px] object-cover"
-            width={1920}
-            height={640}
-          />
+        {/* LEFT 60% — Weighted Smart Hero Banner */}
+        <div className="lg:w-[60%] relative rounded-[20px] overflow-hidden min-h-[320px]">
+          {heroImage ? (
+            <img
+              src={heroImage}
+              alt={heroName}
+              className="w-full h-full min-h-[320px] object-cover absolute inset-0"
+              width={1920}
+              height={640}
+            />
+          ) : (
+            <div className="w-full h-full min-h-[320px] bg-muted absolute inset-0" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
 
           <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-12">
@@ -154,18 +202,18 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
             </p>
 
             <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-1 tracking-tight">
-              KONGSI THE KING
+              {heroConfig.catchphrase}
             </h2>
-            <p className="text-accent font-bold text-lg md:text-xl mb-3">
-              Musang King Durian — Hottest Product
+            <p className="font-bold text-lg md:text-xl mb-3" style={{ color: heroConfig.nameColor }}>
+              {heroName} — Hottest Product
             </p>
 
             <div className="flex items-baseline gap-3 mb-4">
               <span className="text-2xl md:text-3xl font-extrabold text-white">
-                RM {durianCommunityPrice}/kg
+                RM {heroCommunityPrice}/kg
               </span>
               <span className="text-base text-white/50 line-through">
-                RM {durianRetailPrice}/kg
+                RM {heroRetailPrice}/kg
               </span>
               <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-semibold">
                 Community Price
@@ -178,29 +226,27 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
                 <span className="flex items-center gap-1">
                   <Users className="h-3 w-3" /> Pool Progress
                 </span>
-                <span className="font-bold text-white">{Math.round(durianPercent)}% Full</span>
+                <span className="font-bold text-white">{Math.round(heroDemand)}% Full</span>
               </div>
               <div className="h-2.5 rounded-full bg-white/20 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-1000"
-                  style={{ width: `${durianPercent}%` }}
+                  style={{ width: `${heroDemand}%` }}
                 />
               </div>
               <p className="text-[10px] text-white/50 mt-1">
                 Join now to lock in the lowest price!
-                {durianListing && (() => {
-                  const dc = getListingCoords(durianListing.district, durianListing.state);
-                  const dist = getDistanceKm(userLocation.lat, userLocation.lng, dc.lat, dc.lng);
-                  return <span className="ml-2 text-primary font-semibold">Closest pool: {dist.toFixed(1)} km away</span>;
-                })()}
+                {heroDistance != null && (
+                  <span className="ml-2 text-primary font-semibold">Closest pool: {heroDistance.toFixed(1)} km away</span>
+                )}
               </p>
             </div>
 
             <button
-              onClick={() => { if (durianListing) setSelectedItem(durianListing); }}
+              onClick={() => { if (heroListing) setSelectedItem(heroListing); }}
               className="w-fit px-8 py-3 rounded-xl kongsi-gradient text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse-glow"
             >
-              Join Pool — RM {durianCommunityPrice}/kg
+              Join Pool — RM {heroCommunityPrice}/kg
             </button>
           </div>
         </div>
@@ -269,11 +315,10 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {filteredListings.map((item) => {
-            const categoryData = shopItemCategories.find((c) => c.name === item.category);
             const imageUrl = produceImages[item.category] || "";
+            const categoryData = shopItemCategories.find((c) => c.name === item.category);
             const icon = categoryData ? categoryData.image : "?";
-            // Prioritize backend name; only use category displayName for mock data
-            const displayName = isBackendData ? (item.itemName || categoryData?.displayName || item.category) : (categoryData?.displayName || item.itemName);
+            const displayName = getDisplayName(item, isBackendData);
             const demandPercent = item.currentDemand
               ? Math.min(100, (item.currentDemand / (item.targetDemand || 100)) * 100)
               : 0;

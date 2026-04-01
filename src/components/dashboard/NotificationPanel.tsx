@@ -18,10 +18,10 @@ const NotificationPanel = ({ notifications, open, onClose, onClear }: Notificati
   if (!open) return null;
 
   return (
-    <div className="absolute bottom-16 left-2 w-80 bg-card border border-border rounded-2xl shadow-xl z-50 animate-scale-in overflow-hidden">
+    <div className="fixed bottom-20 left-16 w-80 bg-card border border-border rounded-2xl shadow-2xl z-[9999] overflow-hidden animate-in slide-in-from-left-4 duration-300">
       <div className="flex items-center justify-between p-4 border-b border-border">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-          <Bell className="h-4 w-4 text-kongsi-orange" />
+          <Bell className="h-4 w-4 text-accent" />
           Notifications
         </h3>
         <div className="flex items-center gap-2">
