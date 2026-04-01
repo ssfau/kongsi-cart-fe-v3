@@ -67,7 +67,7 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
   }, [listings, activeGroup]);
 
   if (selectedItem) {
-    return <ItemDetail item={selectedItem} onBack={() => setSelectedItem(null)} />;
+    return <ItemDetail item={selectedItem} onBack={() => setSelectedItem(null)} onNotification={onNotification} />;
   }
 
   // Find durian listing for hero
