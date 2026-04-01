@@ -184,6 +184,7 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {filteredListings.map((item) => {
             const categoryData = shopItemCategories.find((c) => c.name === item.category);
+            const imageUrl = produceImages[item.category] || "";
             const icon = categoryData ? categoryData.image : "📦";
             const displayName = categoryData?.displayName || item.itemName;
             const demandPercent = item.currentDemand
