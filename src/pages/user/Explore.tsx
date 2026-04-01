@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { ArrowLeft, MapPin, TrendingUp, Users, Leaf, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,6 +16,18 @@ import { getListingCoords, getDistanceKm } from "@/data/locationCoordinates";
 import api from "@/lib/axios";
 import ItemDetail from "@/components/dashboard/ItemDetail";
 import type { ListingItem } from "@/components/dashboard/ShopPage";
+
+interface EnrichedItem extends ListingItem {
+  _distance: number;
+  _coords: { lat: number; lng: number };
+}
+
+interface LocationGroup {
+  key: string;
+  lat: number;
+  lng: number;
+  items: EnrichedItem[];
+}
 
 const Explore = () => {
   const navigate = useNavigate();
@@ -28,6 +41,7 @@ const Explore = () => {
   const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null);
   const [showSearchArea, setShowSearchArea] = useState(false);
   const [useMapFilter, setUseMapFilter] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
@@ -53,14 +67,42 @@ const Explore = () => {
   }, []);
 
   const enrichedListings = useMemo(() => {
-    return listings
+    let items = listings;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      items = items.filter((item) => {
+        const cat = shopItemCategories.find((c) => c.name === item.category);
+        const name = cat?.displayName || item.itemName;
+        return (
+          name.toLowerCase().includes(q) ||
+          item.itemName.toLowerCase().includes(q) ||
+          item.category.toLowerCase().includes(q) ||
+          (item.district || "").toLowerCase().includes(q) ||
+          (item.state || "").toLowerCase().includes(q)
+        );
+      });
+    }
+    return items
       .map((item) => {
         const coords = getListingCoords(item.district, item.state);
         const distance = getDistanceKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
-        return { ...item, _distance: distance, _coords: coords };
+        return { ...item, _distance: distance, _coords: coords } as EnrichedItem;
       })
       .sort((a, b) => a._distance - b._distance);
-  }, [listings, userLocation.lat, userLocation.lng]);
+  }, [listings, userLocation.lat, userLocation.lng, searchQuery]);
+
+  // Group by coordinate key (rounded to ~100m)
+  const groups = useMemo(() => {
+    const map = new Map<string, LocationGroup>();
+    enrichedListings.forEach((item) => {
+      const key = `${item._coords.lat.toFixed(3)},${item._coords.lng.toFixed(3)}`;
+      if (!map.has(key)) {
+        map.set(key, { key, lat: item._coords.lat, lng: item._coords.lng, items: [] });
+      }
+      map.get(key)!.items.push(item);
+    });
+    return Array.from(map.values());
+  }, [enrichedListings]);
 
   const visibleListings = useMemo(() => {
     if (!useMapFilter || !mapBounds) return enrichedListings;
@@ -76,7 +118,65 @@ const Explore = () => {
     setShowSearchArea(false);
   }, []);
 
-  // Initialize map
+  const buildClusterHtml = useCallback((group: LocationGroup) => {
+    const { items } = group;
+
+    if (items.length === 1) {
+      const img = produceImages[items[0].category] || "";
+      return `<div style="width:52px;height:52px;border-radius:50%;overflow:hidden;border:3px solid hsl(90,55%,51%);box-shadow:0 0 16px hsl(90,55%,51%,0.4);background:#222;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;" />` : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:white;font-size:20px;">?</div>`}</div>`;
+    }
+
+    const visible = items.slice(0, Math.min(items.length, 3));
+    const overflow = items.length > 4 ? items.length - 3 : 0;
+    const showFourth = items.length === 4;
+    const totalCircles = visible.length + (overflow > 0 ? 1 : (showFourth ? 1 : 0));
+    const circleSize = 32;
+    const overlap = 10;
+    const totalWidth = circleSize + (totalCircles - 1) * (circleSize - overlap);
+
+    let html = `<div style="display:flex;cursor:pointer;position:relative;width:${totalWidth}px;height:${circleSize}px;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">`;
+
+    visible.forEach((item, i) => {
+      const img = produceImages[item.category] || "";
+      const left = i * (circleSize - overlap);
+      html += `<div style="position:absolute;left:${left}px;top:0;width:${circleSize}px;height:${circleSize}px;border-radius:50%;overflow:hidden;border:2px solid hsl(90,55%,51%);background:#1a1a1a;z-index:${totalCircles - i};">${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;" />` : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:white;font-size:14px;">?</div>`}</div>`;
+    });
+
+    if (overflow > 0) {
+      const left = visible.length * (circleSize - overlap);
+      html += `<div style="position:absolute;left:${left}px;top:0;width:${circleSize}px;height:${circleSize}px;border-radius:50%;background:hsl(32,93%,54%);border:2px solid white;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:12px;z-index:1;">+${overflow}</div>`;
+    } else if (showFourth) {
+      const img4 = produceImages[items[3].category] || "";
+      const left = visible.length * (circleSize - overlap);
+      html += `<div style="position:absolute;left:${left}px;top:0;width:${circleSize}px;height:${circleSize}px;border-radius:50%;overflow:hidden;border:2px solid hsl(90,55%,51%);background:#1a1a1a;z-index:1;">${img4 ? `<img src="${img4}" style="width:100%;height:100%;object-fit:cover;" />` : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:white;font-size:14px;">?</div>`}</div>`;
+    }
+
+    html += `</div>`;
+    return html;
+  }, []);
+
+  const buildPopupHtml = useCallback((group: LocationGroup) => {
+    const location = group.items[0]?.district || group.items[0]?.state || "Collection Point";
+    let html = `<div style="min-width:220px;max-width:280px;font-family:system-ui,sans-serif;">
+      <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:#222;">${location}</div>
+      <div style="font-size:10px;color:#888;margin-bottom:8px;">${group.items.length} Kongsi Pool${group.items.length > 1 ? "s" : ""} available</div>`;
+
+    group.items.forEach((item) => {
+      const cat = shopItemCategories.find((c) => c.name === item.category);
+      const name = cat?.displayName || item.itemName;
+      const demand = item.currentDemand ? Math.min(100, (item.currentDemand / (item.targetDemand || 100)) * 100) : 0;
+      html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid #eee;">
+        <div style="font-size:12px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</div>
+        <div style="font-size:10px;color:#666;">${Math.round(demand)}%</div>
+        <div style="background:hsl(90,55%,51%);color:white;font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;cursor:pointer;" data-item-id="${item._id}">Join</div>
+      </div>`;
+    });
+
+    html += `</div>`;
+    return html;
+  }, []);
+
+  // Initialize map with clustering
   useEffect(() => {
     if (!mapRef.current || loading) return;
 
@@ -108,30 +208,49 @@ const Explore = () => {
     });
     L.marker([userLocation.lat, userLocation.lng], { icon: userIcon }).addTo(map);
 
-    // Product markers
-    enrichedListings.forEach((item) => {
-      const img = produceImages[item.category] || "";
-      const blobIcon = L.divIcon({
+    // Grouped markers
+    groups.forEach((group) => {
+      const html = buildClusterHtml(group);
+      const isMulti = group.items.length > 1;
+      const iconWidth = group.items.length === 1 ? 52 : Math.min(140, 32 + (Math.min(group.items.length, 4) - 1) * 22);
+      const iconHeight = group.items.length === 1 ? 52 : 32;
+
+      const icon = L.divIcon({
         className: "",
-        html: `<div style="
-          width:52px;height:52px;border-radius:50%;overflow:hidden;
-          border:3px solid hsl(90,55%,51%);
-          box-shadow:0 0 16px hsl(90,55%,51%,0.4);
-          background:#222;cursor:pointer;
-          transition:transform 0.2s;
-        " onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
-          ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;" />` : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:white;font-size:24px;">🥬</div>`}
-        </div>`,
-        iconSize: [52, 52],
-        iconAnchor: [26, 26],
+        html,
+        iconSize: [iconWidth, iconHeight],
+        iconAnchor: [iconWidth / 2, iconHeight / 2],
       });
 
-      const marker = L.marker([item._coords.lat, item._coords.lng], { icon: blobIcon }).addTo(map);
-      marker.on("click", () => {
-        setHighlightedId(item._id);
-        const el = itemRefs.current[item._id];
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-      });
+      const marker = L.marker([group.lat, group.lng], { icon }).addTo(map);
+
+      if (isMulti) {
+        const popup = L.popup({ closeButton: true, className: "kongsi-cluster-popup", maxWidth: 300 })
+          .setContent(buildPopupHtml(group));
+
+        marker.bindPopup(popup);
+        marker.on("click", () => marker.openPopup());
+
+        marker.on("popupopen", () => {
+          const container = marker.getPopup()?.getElement();
+          if (container) {
+            container.querySelectorAll("[data-item-id]").forEach((btn) => {
+              (btn as HTMLElement).addEventListener("click", (e) => {
+                e.stopPropagation();
+                const id = (btn as HTMLElement).getAttribute("data-item-id");
+                const item = group.items.find((i) => i._id === id);
+                if (item) setSelectedItem(item);
+              });
+            });
+          }
+        });
+      } else {
+        marker.on("click", () => {
+          setHighlightedId(group.items[0]._id);
+          const el = itemRefs.current[group.items[0]._id];
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      }
     });
 
     map.on("moveend", () => {
@@ -144,7 +263,7 @@ const Explore = () => {
       map.remove();
       mapInstance.current = null;
     };
-  }, [loading, enrichedListings, userLocation.lat, userLocation.lng]);
+  }, [loading, groups, userLocation.lat, userLocation.lng, buildClusterHtml, buildPopupHtml]);
 
   if (selectedItem) {
     return <ItemDetail item={selectedItem} onBack={() => setSelectedItem(null)} />;
@@ -159,7 +278,19 @@ const Explore = () => {
         </button>
         <MapPin className="h-4 w-4 text-primary" />
         <h1 className="text-base font-bold text-foreground">Explore Nearby</h1>
-        <Badge variant="outline" className="ml-auto text-[10px] border-primary/30 text-primary">
+
+        {/* Search bar */}
+        <div className="relative ml-4 flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search produce..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8 h-8 bg-muted/50 border-none rounded-xl text-xs"
+          />
+        </div>
+
+        <Badge variant="outline" className="ml-auto text-[10px] border-primary/30 text-primary shrink-0">
           {visibleListings.length} listings
         </Badge>
       </div>
@@ -186,16 +317,26 @@ const Explore = () => {
               0%, 100% { transform: scale(1); opacity: 0.5; }
               50% { transform: scale(2); opacity: 0; }
             }
+            .kongsi-cluster-popup .leaflet-popup-content-wrapper {
+              border-radius: 12px;
+              box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            }
+            .kongsi-cluster-popup .leaflet-popup-tip {
+              box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
           `}</style>
         </div>
 
         {/* Sidebar — 30% */}
         <div className="flex-[3] border-l border-border bg-card flex flex-col">
-          <div className="px-4 py-3 border-b border-border/50">
+          <div className="px-4 py-3 border-b border-border/50 flex items-center gap-2">
             <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
               <MapPin className="h-3 w-3" />
               Sorted by: Closest to You
             </div>
+            {searchQuery.trim() && (
+              <span className="text-[10px] text-accent ml-auto">"{searchQuery}"</span>
+            )}
           </div>
 
           <ScrollArea className="flex-1">
@@ -207,7 +348,9 @@ const Explore = () => {
               ) : visibleListings.length === 0 ? (
                 <div className="text-center py-12">
                   <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">No listings in this area</p>
+                  <p className="text-sm text-muted-foreground">
+                    {searchQuery ? `No results for "${searchQuery}"` : "No listings in this area"}
+                  </p>
                 </div>
               ) : (
                 visibleListings.map((item) => {
@@ -233,7 +376,7 @@ const Explore = () => {
                         {produceImages[item.category] ? (
                           <img src={produceImages[item.category]} alt={displayName} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full bg-muted flex items-center justify-center">🥬</div>
+                          <div className="w-full h-full bg-muted flex items-center justify-center text-sm">?</div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
