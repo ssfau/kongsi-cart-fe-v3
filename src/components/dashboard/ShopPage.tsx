@@ -158,6 +158,11 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
             </div>
             <p className="text-[10px] text-white/50 mt-1">
               Join now to lock in the lowest price!
+              {durianListing && (() => {
+                const dc = getListingCoords(durianListing.district, durianListing.state);
+                const dist = getDistanceKm(userLocation.lat, userLocation.lng, dc.lat, dc.lng);
+                return <span className="ml-2 text-kongsi-green font-semibold">Closest pool: {dist.toFixed(1)} km away</span>;
+              })()}
             </p>
           </div>
 
