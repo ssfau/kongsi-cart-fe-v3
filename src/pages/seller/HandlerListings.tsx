@@ -26,15 +26,6 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-destructive text-destructive-foreground",
 };
 
-// Demo data for when API is unavailable
-const demoListings: Listing[] = [
-  { id: "1", itemName: "Premium Durian (Musang King)", status: "active", estimatedPriceMin: 45, estimatedPriceMax: 65, deadline: "2026-04-15T23:59:00", estimatedQty: 200, unit: "kg" },
-  { id: "2", itemName: "Organic Free-Range Eggs", status: "closed", estimatedPriceMin: 12, estimatedPriceMax: 18, deadline: "2026-04-01T23:59:00", estimatedQty: 500, unit: "unit" },
-  { id: "3", itemName: "Fresh Atlantic Salmon", status: "shipped", estimatedPriceMin: 38, estimatedPriceMax: 52, deadline: "2026-03-20T23:59:00", estimatedQty: 100, unit: "kg" },
-  { id: "4", itemName: "Japanese Rice (Koshihikari)", status: "active", estimatedPriceMin: 22, estimatedPriceMax: 30, deadline: "2026-04-20T23:59:00", estimatedQty: 300, unit: "kg" },
-  { id: "5", itemName: "Raw Manuka Honey", status: "settled", estimatedPriceMin: 80, estimatedPriceMax: 120, deadline: "2026-03-10T23:59:00", estimatedQty: 50, unit: "unit" },
-];
-
 const HandlerListings = () => {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,10 +35,17 @@ const HandlerListings = () => {
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const { data } = await api.get("/listings");
-        setListings(Array.isArray(data) ? data : demoListings);
-      } catch {
-        setListings(demoListings);
+        const response = await api.get("/my-listings");
+        const apiData = response.data.data || [];
+        const mappedData = apiData.map((item: any) => ({
+          ...item,
+          id: item._id || item.id,
+        }));
+        // Filter by supplierId if we want to mimic "My Listings", or just rely on backend filter
+        setListings(mappedData);
+      } catch (err) {
+        console.error("Failed to fetch listings", err);
+        setListings([]);
       } finally {
         setLoading(false);
       }

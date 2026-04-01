@@ -1,9 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
-import { sampleOrders, Order } from "@/data/orders";
+import { Order } from "@/data/orders";
+import api from "@/lib/axios";
 
 const OrdersPage = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await api.get("/orders/my-orders");
+        setOrders(response.data.data);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch orders");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, []);
 
   if (selectedOrder) {
     return (
@@ -41,21 +59,30 @@ const OrdersPage = () => {
   return (
     <div className="p-6">
       <h2 className="text-xl font-bold text-foreground mb-6">Orders</h2>
-      <div className="space-y-3">
-        {sampleOrders.map((order) => (
-          <button
-            key={order.id}
-            onClick={() => setSelectedOrder(order)}
-            className="w-full flex items-center gap-4 p-4 rounded-lg border border-border bg-card hover:border-primary hover:shadow-md transition-all text-left"
-          >
-            <span className="text-3xl">{order.image}</span>
-            <div>
-              <p className="font-medium text-card-foreground">{order.itemName}</p>
-              <p className="text-sm text-muted-foreground">{order.status}</p>
-            </div>
-          </button>
-        ))}
-      </div>
+      
+      {loading ? (
+        <p className="text-center text-muted-foreground mt-10">Loading orders...</p>
+      ) : error ? (
+        <p className="text-center text-red-500 mt-10">{error}</p>
+      ) : orders.length === 0 ? (
+        <p className="text-center text-muted-foreground mt-10">You have no orders yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {orders.map((order) => (
+            <button
+              key={order.id}
+              onClick={() => setSelectedOrder(order)}
+              className="w-full flex items-center gap-4 p-4 rounded-lg border border-border bg-card hover:border-primary hover:shadow-md transition-all text-left"
+            >
+              <span className="text-3xl">{order.image}</span>
+              <div>
+                <p className="font-medium text-card-foreground">{order.itemName}</p>
+                <p className="text-sm text-muted-foreground">{order.status}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
