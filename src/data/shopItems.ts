@@ -25,4 +25,12 @@ export const shopItemCategories: ShopItemCategory[] = [
   { id: "18", name: "Fish", image: "🐟" },
   { id: "19", name: "Beef", image: "🥩" },
   { id: "20", name: "Rice", image: "🍚" },
+  { id: "21", name: "Flour", image: "🌾" },
+  { id: "22", name: "Toothpaste", image: "🪥" },
+  { id: "23", name: "Shampoo", image: "🧴" },
+  { id: "24", name: "Ramen", image: "🍜" },
+  { id: "25", name: "Bread", image: "🍞" },
+  { id: "26", name: "Milk", image: "🥛" },
+  { id: "27", name: "Eggs", image: "🥚" },
+  { id: "28", name: "Soap", image: "🧼" },
 ];
