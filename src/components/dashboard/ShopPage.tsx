@@ -36,6 +36,15 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
   const [listings, setListings] = useState<ListingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeGroup, setActiveGroup] = useState<CategoryGroup>("All");
+  const userLocation = useUserLocation();
+  const { toast } = useToast();
+
+  // Notify user if location is default
+  useEffect(() => {
+    if (userLocation.error && onNotification) {
+      onNotification(userLocation.error);
+    }
+  }, [userLocation.error]);
 
   useEffect(() => {
     const fetchListings = async () => {
