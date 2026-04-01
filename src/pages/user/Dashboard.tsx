@@ -128,8 +128,8 @@ const Dashboard = () => {
 
   const desktopSidebar = (
     <aside
-      className="w-16 hover:w-48 transition-all duration-300 flex flex-col items-center group overflow-hidden shrink-0 relative"
-      style={{ backgroundColor: sidebarBg, borderRight: `1px solid ${sidebarBorder}` }}
+      className="w-16 hover:w-48 transition-all duration-300 flex flex-col items-center group overflow-hidden shrink-0 relative min-h-0"
+      style={{ backgroundColor: sidebarBg, borderRight: `1px solid ${sidebarBorder}`, height: "100vh", position: "sticky", top: 0 }}
     >
       <div className="p-3 mt-2 mb-4">
         <img src={logo} alt="Kongsi Kart" className="h-10 w-10 rounded-xl object-cover" />
