@@ -67,6 +67,8 @@ const LoginPage = () => {
     }
   };
 
+  if (checkingBackend) return null;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[hsl(var(--handler-gradient-from))] to-[hsl(var(--handler-gradient-to))] px-4">
       <div className="bg-card text-card-foreground rounded-xl shadow-lg p-8 max-w-md w-full">
