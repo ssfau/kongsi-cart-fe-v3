@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { shopItemCategories, type ShopItemCategory } from "@/data/shopItems";
+import { fakeListings } from "@/data/fakeListings";
 import ItemDetail from "./ItemDetail";
 import api from "@/lib/axios";
 import { Progress } from "@/components/ui/progress";
-import { Leaf, TrendingUp, Users, ShoppingCart } from "lucide-react";
+import { Leaf, TrendingUp, Users } from "lucide-react";
+import musangKingHero from "@/assets/musang-king-hero.jpg";
 
 export interface ListingItem {
   _id: string;
@@ -27,9 +29,6 @@ const ShopPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeGroup, setActiveGroup] = useState<CategoryGroup>("All");
 
-  // Simulated community pool progress
-  const [poolProgress, setPoolProgress] = useState(62);
-
   useEffect(() => {
     const fetchListings = async () => {
       try {
@@ -44,23 +43,13 @@ const ShopPage = () => {
         }));
         setListings(enrichedListings);
       } catch (err) {
-        console.error("Failed to fetch listings", err);
+        console.warn("Backend unreachable, using synthetic listings", err);
+        setListings(fakeListings);
       } finally {
         setLoading(false);
       }
     };
     fetchListings();
-  }, []);
-
-  // Animate pool progress
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPoolProgress((prev) => {
-        const next = prev + Math.random() * 2;
-        return next >= 95 ? 62 : next;
-      });
-    }, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   const categoryGroups: CategoryGroup[] = ["All", "Leafy Greens", "Vegetables", "Fruits"];
@@ -77,51 +66,84 @@ const ShopPage = () => {
     return <ItemDetail item={selectedItem} onBack={() => setSelectedItem(null)} />;
   }
 
-  const isPoolNearTarget = poolProgress >= 80;
+  // Find durian listing for hero
+  const durianListing = listings.find((l) => l.category === "Durian");
+  const durianDemand = durianListing?.currentDemand ?? 85;
+  const durianTarget = durianListing?.targetDemand ?? 100;
+  const durianPercent = Math.min(100, (durianDemand / durianTarget) * 100);
+  const durianCommunityPrice = durianListing?.depositPerUnit?.toFixed(2) ?? "45.00";
+  const durianRetailPrice = durianListing?.estimatedPriceMax?.toFixed(2) ?? "75.00";
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
-      {/* Hero Banner */}
-      <div
-        className={`kongsi-gradient rounded-2xl p-6 md:p-8 mb-8 text-white relative overflow-hidden ${
-          isPoolNearTarget ? "animate-pulse-glow" : ""
-        }`}
-      >
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-2">
-            <Users className="h-5 w-5" />
-            <span className="text-sm font-medium opacity-90">Neighborhood Pool</span>
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-1">
+      {/* Hero Banner — Musang King Ad */}
+      <div className="relative rounded-2xl overflow-hidden mb-8 group">
+        {/* Background image */}
+        <img
+          src={musangKingHero}
+          alt="Musang King Durian"
+          className="w-full h-64 md:h-80 object-cover"
+          width={1920}
+          height={640}
+        />
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+
+        {/* Content */}
+        <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-12">
+          {/* Watermark slogan */}
+          <p className="text-xs md:text-sm text-muted-foreground/60 font-medium tracking-widest uppercase mb-2">
             Kongsi the cart, kongsi the cost
-          </h2>
-          <p className="text-sm opacity-80 mb-4 max-w-lg">
-            Join your neighbors to unlock community prices. The more people join, the lower the price!
           </p>
 
-          {/* Pool progress bar */}
-          <div className="max-w-md">
-            <div className="flex items-center justify-between text-sm mb-2">
-              <span className="font-medium">Community Progress</span>
-              <span className="font-bold">{Math.round(poolProgress)}% of target</span>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-1 tracking-tight">
+            KONGSI THE KING
+          </h2>
+          <p className="text-kongsi-orange font-bold text-lg md:text-xl mb-3">
+            Musang King Durian — Hottest Product 🔥
+          </p>
+
+          <div className="flex items-baseline gap-3 mb-4">
+            <span className="text-2xl md:text-3xl font-extrabold text-white">
+              RM {durianCommunityPrice}/kg
+            </span>
+            <span className="text-base text-white/50 line-through">
+              RM {durianRetailPrice}/kg
+            </span>
+            <span className="text-xs bg-kongsi-green/20 text-kongsi-green px-2 py-0.5 rounded-full font-semibold">
+              Community Price
+            </span>
+          </div>
+
+          {/* Pool progress */}
+          <div className="max-w-sm mb-4">
+            <div className="flex items-center justify-between text-xs text-white/70 mb-1">
+              <span className="flex items-center gap-1">
+                <Users className="h-3 w-3" /> Pool Progress
+              </span>
+              <span className="font-bold text-white">{Math.round(durianPercent)}% Full</span>
             </div>
-            <div className="h-3 rounded-full bg-white/20 overflow-hidden">
+            <div className="h-2.5 rounded-full bg-white/20 overflow-hidden">
               <div
-                className="h-full rounded-full bg-white transition-all duration-1000 ease-out"
-                style={{ width: `${poolProgress}%` }}
+                className="h-full rounded-full bg-gradient-to-r from-kongsi-green to-kongsi-orange transition-all duration-1000"
+                style={{ width: `${durianPercent}%` }}
               />
             </div>
-            <p className="text-xs mt-2 opacity-80">
-              {isPoolNearTarget
-                ? "🎉 Almost there! Deposit prices unlocked soon!"
-                : `${Math.round(80 - poolProgress)}% more to unlock deposit prices for all items`}
+            <p className="text-[10px] text-white/50 mt-1">
+              Join now to lock in the lowest price!
             </p>
           </div>
-        </div>
 
-        {/* Decorative circles */}
-        <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/10" />
-        <div className="absolute -right-5 bottom-0 w-24 h-24 rounded-full bg-white/5" />
+          {/* Join Pool CTA */}
+          <button
+            onClick={() => {
+              if (durianListing) setSelectedItem(durianListing);
+            }}
+            className="w-fit px-8 py-3 rounded-xl bg-gradient-to-r from-kongsi-green to-kongsi-orange text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse-glow"
+          >
+            Join Pool — RM {durianCommunityPrice}/kg
+          </button>
+        </div>
       </div>
 
       {/* Category Tabs */}
