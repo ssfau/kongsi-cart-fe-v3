@@ -4,9 +4,12 @@ import { fakeListings } from "@/data/fakeListings";
 import ItemDetail from "./ItemDetail";
 import api from "@/lib/axios";
 import { Progress } from "@/components/ui/progress";
-import { Leaf, TrendingUp, Users } from "lucide-react";
+import { Leaf, TrendingUp, Users, MapPin } from "lucide-react";
 import musangKingHero from "@/assets/musang-king-hero.jpg";
 import { produceImages } from "@/assets/produce";
+import { useUserLocation } from "@/hooks/useUserLocation";
+import { getListingCoords, getDistanceKm } from "@/data/locationCoordinates";
+import { useToast } from "@/hooks/use-toast";
 
 export interface ListingItem {
   _id: string;
