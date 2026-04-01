@@ -139,10 +139,6 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
       .sort((a, b) => a._distance - b._distance);
   }, [listings, activeGroup, userLocation.lat, userLocation.lng, searchQuery, isBackendData]);
 
-  if (selectedItem) {
-    return <ItemDetail item={selectedItem} onBack={() => setSelectedItem(null)} onNotification={onNotification} />;
-  }
-
   // ─── Weighted "Smart" Hero Banner ───
   // Score = (demandPercent * 0.7) + (inverseDistance * 0.3)
   const heroItem = useMemo(() => {
@@ -154,7 +150,6 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
         : 0;
       const coords = getListingCoords(item.district, item.state);
       const dist = getDistanceKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
-      // Inverse distance: closer = higher score (cap at 100)
       const inverseDist = Math.max(0, 100 - dist);
       const score = demandPercent * 0.7 + inverseDist * 0.3;
       return { item, score, demandPercent, dist };
@@ -166,6 +161,10 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
 
   // Resolve hero config
   const heroListing = heroItem?.item || null;
+
+  if (selectedItem) {
+    return <ItemDetail item={selectedItem} onBack={() => setSelectedItem(null)} onNotification={onNotification} />;
+  }
   const heroName = heroListing ? getDisplayName(heroListing, isBackendData) : "Musang King Durian";
   const heroCategory = heroListing?.category || "Durian";
   const heroCatData = shopItemCategories.find((c) => c.name === heroCategory);
