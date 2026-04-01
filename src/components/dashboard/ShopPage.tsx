@@ -256,11 +256,12 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
                     <Leaf className="h-3 w-3" />
                     Direct from Supplier
                   </span>
-                  <h3 className="text-sm font-bold text-card-foreground leading-snug line-clamp-2">
-                    {displayName}
-                  </h3>
-                  <span className="text-xs text-muted-foreground">
-                    {item.companyName || "Independent Seller"}
+                  {(item as any)._distance != null && (
+                    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                      <MapPin className="h-2.5 w-2.5" />
+                      {((item as any)._distance as number).toFixed(1)} km
+                    </span>
+                  )}
                   </span>
 
                   {/* Pricing */}
