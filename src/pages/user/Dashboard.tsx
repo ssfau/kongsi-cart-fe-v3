@@ -1,15 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Home, ShoppingCart, User, Settings, Bell, Leaf,
-  TrendingUp, Package, CreditCard, Search, Menu, X
+  Home, ShoppingCart, User, Settings, Bell,
+  Package, CreditCard, Menu
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 import ShopPage from "@/components/dashboard/ShopPage";
 import OrdersPage from "@/components/dashboard/OrdersPage";
 import PaymentMethodPage from "@/components/dashboard/PaymentMethodPage";
@@ -33,7 +32,6 @@ const Dashboard = () => {
     }
   }, []);
 
-  // Simulated cart count from localStorage
   useEffect(() => {
     const stored = localStorage.getItem("kongsi-cart");
     if (stored) {
@@ -51,28 +49,26 @@ const Dashboard = () => {
     { key: "profile", label: "Profile", icon: <User className="h-5 w-5" /> },
   ];
 
-  const sidebarNav = (
+  const handleNavClick = (key: Tab) => {
+    if (key === "profile") navigate("/settings");
+    else setActiveTab(key);
+    setSidebarOpen(false);
+  };
+
+  const mobileNav = (
     <nav className="flex flex-col gap-1 p-3">
       {navItems.map((item) => (
         <button
           key={item.key}
-          onClick={() => {
-            if (item.key === "profile") {
-              navigate("/settings");
-            } else {
-              setActiveTab(item.key);
-            }
-            setSidebarOpen(false);
-          }}
+          onClick={() => handleNavClick(item.key)}
           className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
             activeTab === item.key
               ? "bg-primary/15 text-primary"
               : "text-muted-foreground hover:bg-muted hover:text-foreground"
           }`}
-          title={item.label}
         >
           {item.icon}
-          {(isMobile || sidebarOpen) && <span>{item.label}</span>}
+          <span>{item.label}</span>
         </button>
       ))}
     </nav>
@@ -80,20 +76,15 @@ const Dashboard = () => {
 
   const desktopSidebar = (
     <aside className="w-16 hover:w-48 transition-all duration-300 border-r border-border bg-card flex flex-col items-center group overflow-hidden shrink-0">
-      {/* Logo */}
       <div className="p-3 mt-2 mb-4">
         <img src={logo} alt="Kongsi Kart" className="h-10 w-10 rounded-xl object-cover" />
       </div>
 
-      {/* Nav icons */}
       <nav className="flex flex-col gap-1 px-2 w-full">
         {navItems.map((item) => (
           <button
             key={item.key}
-            onClick={() => {
-              if (item.key === "profile") navigate("/settings");
-              else setActiveTab(item.key);
-            }}
+            onClick={() => handleNavClick(item.key)}
             className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap ${
               activeTab === item.key
                 ? "bg-primary/15 text-primary"
@@ -101,7 +92,7 @@ const Dashboard = () => {
             }`}
             title={item.label}
           >
-            {item.icon}
+            <span className="shrink-0">{item.icon}</span>
             <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               {item.label}
             </span>
@@ -109,13 +100,12 @@ const Dashboard = () => {
         ))}
       </nav>
 
-      {/* Notifications at bottom */}
       <div className="mt-auto mb-4 px-2 w-full">
         <button
           className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all w-full whitespace-nowrap"
           title="Notifications"
         >
-          <Bell className="h-5 w-5" />
+          <span className="shrink-0"><Bell className="h-5 w-5" /></span>
           <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             Inbox
           </span>
@@ -139,7 +129,7 @@ const Dashboard = () => {
                 <img src={logo} alt="Kongsi Kart" className="h-10 w-10 rounded-xl object-cover" />
                 <span className="font-bold text-foreground kongsi-gradient-text text-lg">Kongsi Kart</span>
               </div>
-              {sidebarNav}
+              {mobileNav}
             </SheetContent>
           </Sheet>
         )}
@@ -152,7 +142,6 @@ const Dashboard = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Search */}
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -161,7 +150,6 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Settings */}
         <button
           onClick={() => navigate("/settings")}
           className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
@@ -169,8 +157,11 @@ const Dashboard = () => {
           <Settings className="h-5 w-5" />
         </button>
 
-        {/* Cart */}
-        <button className="relative p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+        {/* Cart — redirects to orders */}
+        <button
+          onClick={() => setActiveTab("orders")}
+          className="relative p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+        >
           <ShoppingCart className="h-5 w-5" />
           {cartCount > 0 && (
             <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] kongsi-gradient border-0 text-white">
@@ -197,10 +188,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Desktop sidebar */}
       {!isMobile && desktopSidebar}
-
-      {/* Main area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {topHeader}
         <main className="flex-1 overflow-y-auto">
