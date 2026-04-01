@@ -181,6 +181,17 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
         </div>
       </div>
 
+      {/* Live Near You Teaser */}
+      {!loading && listings.length > 0 && (
+        <LiveNearYou
+          listings={listings}
+          userLat={userLocation.lat}
+          userLng={userLocation.lng}
+          onExplore={() => navigate("/explore")}
+          onSelectItem={setSelectedItem}
+        />
+      )}
+
       {/* Category Tabs */}
       <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
         {categoryGroups.map((group) => (

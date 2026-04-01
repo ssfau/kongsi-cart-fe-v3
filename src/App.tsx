@@ -28,6 +28,7 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/explore" element={<Explore />} />
           <Route path="/seller/login" element={<LoginSeller />} />
           
           {/* Handler Protected Routes */}
