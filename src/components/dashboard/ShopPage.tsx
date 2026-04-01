@@ -262,6 +262,11 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
                       {((item as any)._distance as number).toFixed(1)} km
                     </span>
                   )}
+                  <h3 className="text-sm font-bold text-card-foreground leading-snug line-clamp-2">
+                    {displayName}
+                  </h3>
+                  <span className="text-xs text-muted-foreground">
+                    {item.companyName || "Independent Seller"}
                   </span>
 
                   {/* Pricing */}
