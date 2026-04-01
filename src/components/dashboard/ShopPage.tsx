@@ -198,11 +198,20 @@ const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
                 onClick={() => setSelectedItem(item)}
                 className="flex flex-col rounded-2xl border border-border bg-card hover:border-primary/50 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden group"
               >
-                {/* Icon area */}
-                <div className="bg-muted/50 p-4 flex items-center justify-center h-32 group-hover:bg-primary/5 transition-colors">
-                  <span className="text-6xl group-hover:scale-110 transition-transform duration-300">
-                    {icon}
-                  </span>
+                {/* Image area */}
+                <div className="bg-muted/30 flex items-center justify-center h-36 group-hover:bg-primary/5 transition-colors overflow-hidden">
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt={displayName}
+                      loading="lazy"
+                      width={512}
+                      height={512}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                  ) : (
+                    <span className="text-6xl">{icon}</span>
+                  )}
                 </div>
 
                 {/* Content */}
