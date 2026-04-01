@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ArrowLeft, Plus, Minus, MapPin, Truck, Leaf, TrendingUp, Users } from "lucide-react";
+import CollectionPointMap from "./CollectionPointMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
