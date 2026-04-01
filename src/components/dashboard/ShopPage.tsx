@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { shopItemCategories, type ShopItemCategory } from "@/data/shopItems";
 import { fakeListings } from "@/data/fakeListings";
 import ItemDetail from "./ItemDetail";
+import LiveNearYou from "./LiveNearYou";
 import api from "@/lib/axios";
 import { Progress } from "@/components/ui/progress";
 import { Leaf, TrendingUp, Users, MapPin } from "lucide-react";
