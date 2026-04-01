@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { shopItemCategories } from "@/data/shopItems";
+import { produceImages } from "@/assets/produce";
 import api from "@/lib/axios";
 import { useToast } from "@/hooks/use-toast";
 import { ListingItem } from "./ShopPage";
