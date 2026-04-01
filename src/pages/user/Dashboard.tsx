@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Home, ShoppingCart, User, Settings, Bell,
@@ -12,6 +12,7 @@ import { Search } from "lucide-react";
 import ShopPage from "@/components/dashboard/ShopPage";
 import OrdersPage from "@/components/dashboard/OrdersPage";
 import PaymentMethodPage from "@/components/dashboard/PaymentMethodPage";
+import NotificationPanel, { type Notification } from "@/components/dashboard/NotificationPanel";
 import { authService } from "@/services/api";
 import logo from "@/assets/kongsi-kart-logo.jpeg";
 
@@ -22,8 +23,12 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userName, setUserName] = useState<string>("Guest");
   const [cartCount, setCartCount] = useState(0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifPanelOpen, setNotifPanelOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
     const user = authService.getCurrentUser();
@@ -41,6 +46,22 @@ const Dashboard = () => {
       } catch { setCartCount(0); }
     }
   }, [activeTab]);
+
+  const addNotification = useCallback((message: string) => {
+    setNotifications(prev => [
+      {
+        id: `notif-${Date.now()}`,
+        message,
+        timestamp: new Date(),
+        read: false,
+      },
+      ...prev,
+    ]);
+  }, []);
+
+  const clearNotifications = useCallback(() => {
+    setNotifications([]);
+  }, []);
 
   const navItems: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "home", label: "Home", icon: <Home className="h-5 w-5" /> },
@@ -75,7 +96,7 @@ const Dashboard = () => {
   );
 
   const desktopSidebar = (
-    <aside className="w-16 hover:w-48 transition-all duration-300 border-r border-border bg-card flex flex-col items-center group overflow-hidden shrink-0">
+    <aside className="w-16 hover:w-48 transition-all duration-300 border-r border-border bg-card flex flex-col items-center group overflow-hidden shrink-0 relative">
       <div className="p-3 mt-2 mb-4">
         <img src={logo} alt="Kongsi Kart" className="h-10 w-10 rounded-xl object-cover" />
       </div>
@@ -102,14 +123,29 @@ const Dashboard = () => {
 
       <div className="mt-auto mb-4 px-2 w-full">
         <button
-          className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all w-full whitespace-nowrap"
+          onClick={() => setNotifPanelOpen(!notifPanelOpen)}
+          className="relative flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all w-full whitespace-nowrap"
           title="Notifications"
         >
-          <span className="shrink-0"><Bell className="h-5 w-5" /></span>
+          <span className="shrink-0 relative">
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <Badge className="absolute -top-1.5 -right-1.5 h-4 w-4 flex items-center justify-center p-0 text-[9px] kongsi-gradient border-0 text-white">
+                {unreadCount}
+              </Badge>
+            )}
+          </span>
           <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             Inbox
           </span>
         </button>
+
+        <NotificationPanel
+          notifications={notifications}
+          open={notifPanelOpen}
+          onClose={() => setNotifPanelOpen(false)}
+          onClear={clearNotifications}
+        />
       </div>
     </aside>
   );
@@ -157,7 +193,6 @@ const Dashboard = () => {
           <Settings className="h-5 w-5" />
         </button>
 
-        {/* Cart — redirects to orders */}
         <button
           onClick={() => setActiveTab("orders")}
           className="relative p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
@@ -176,13 +211,13 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "home":
-        return <ShopPage />;
+        return <ShopPage onNotification={addNotification} />;
       case "orders":
         return <OrdersPage />;
       case "payment":
         return <PaymentMethodPage />;
       default:
-        return <ShopPage />;
+        return <ShopPage onNotification={addNotification} />;
     }
   };
 
