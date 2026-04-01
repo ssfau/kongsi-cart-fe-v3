@@ -12,6 +12,7 @@ import LoginSeller from "./pages/seller/LoginSeller";
 import HandlerListings from "./pages/seller/HandlerListings";
 import CreateListings from "./pages/seller/CreateListings";
 import DemandDashboard from "./pages/seller/DemandDashboard";
+import Explore from "./pages/user/Explore";
 import { HandlerProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
