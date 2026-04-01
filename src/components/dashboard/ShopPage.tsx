@@ -23,7 +23,11 @@ export interface ListingItem {
 
 type CategoryGroup = "All" | "Leafy Greens" | "Vegetables" | "Fruits";
 
-const ShopPage = () => {
+interface ShopPageProps {
+  onNotification?: (msg: string) => void;
+}
+
+const ShopPage = ({ onNotification }: ShopPageProps = {}) => {
   const [selectedItem, setSelectedItem] = useState<ListingItem | null>(null);
   const [listings, setListings] = useState<ListingItem[]>([]);
   const [loading, setLoading] = useState(true);
