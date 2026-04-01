@@ -38,6 +38,7 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
   const [selectedItem, setSelectedItem] = useState<ListingItem | null>(null);
   const [listings, setListings] = useState<ListingItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isBackendData, setIsBackendData] = useState(false);
   const [activeGroup, setActiveGroup] = useState<CategoryGroup>("All");
   const userLocation = useUserLocation();
   const { toast } = useToast();
