@@ -59,9 +59,9 @@ const Dashboard = () => {
     navigate("/");
   }, [navigate]);
 
+  // Nav order: Home, Payments, Explore, Inbox (handled separately), Profile
   const navItems: { key: Tab | "explore"; label: string; icon: React.ReactNode }[] = [
     { key: "home", label: "Home", icon: <Home className="h-5 w-5" /> },
-    { key: "orders", label: "Orders", icon: <Package className="h-5 w-5" /> },
     { key: "payment", label: "Payments", icon: <CreditCard className="h-5 w-5" /> },
     { key: "explore", label: "Explore", icon: <Compass className="h-5 w-5" /> },
     { key: "profile", label: "Profile", icon: <User className="h-5 w-5" /> },
@@ -74,53 +74,95 @@ const Dashboard = () => {
     setSidebarOpen(false);
   };
 
-  const navButton = (item: typeof navItems[0], showLabel: boolean, labelClass?: string) => (
-    <button
-      key={item.key}
-      onClick={() => handleNavClick(item.key)}
-      className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 w-full ${
-        activeTab === item.key
-          ? "bg-[hsl(90,55%,51%)]/15 text-[hsl(90,55%,51%)]"
-          : "text-[hsl(90,15%,70%)] hover:bg-[hsl(150,15%,18%)] hover:text-[hsl(90,15%,92%)]"
-      }`}
-      title={item.label}
-    >
-      <span className="shrink-0">{item.icon}</span>
-      {showLabel && <span className={labelClass}>{item.label}</span>}
-    </button>
-  );
+  const sidebarBg = "#1A2B32";
+  const sidebarBorder = "rgba(140,198,63,0.15)";
+  const activeColor = "#8CC63F";
+  const inactiveColor = "rgba(255,255,255,0.55)";
+  const hoverBg = "rgba(255,255,255,0.08)";
 
   const mobileNav = (
-    <nav className="flex flex-col gap-1 p-3">
-      {navItems.map((item) => navButton(item, true))}
-      <div className="border-t border-border my-2" />
+    <nav className="flex flex-col gap-1 p-3 flex-1">
+      {navItems.map((item) => (
+        <button
+          key={item.key}
+          onClick={() => handleNavClick(item.key)}
+          className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 w-full"
+          style={{
+            backgroundColor: activeTab === item.key ? `${activeColor}22` : "transparent",
+            color: activeTab === item.key ? activeColor : inactiveColor,
+          }}
+        >
+          {item.icon}
+          <span>{item.label}</span>
+        </button>
+      ))}
+
+      {/* Inbox in mobile nav */}
       <button
-        onClick={handleLogout}
-        className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-all w-full"
+        onClick={() => { setNotifPanelOpen(!notifPanelOpen); setSidebarOpen(false); }}
+        className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 w-full relative"
+        style={{ color: inactiveColor }}
       >
-        <LogOut className="h-5 w-5" />
-        <span>Log Out</span>
+        <span className="relative">
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <Badge className="absolute -top-1.5 -right-1.5 h-4 w-4 flex items-center justify-center p-0 text-[9px] kongsi-gradient border-0 text-white">
+              {unreadCount}
+            </Badge>
+          )}
+        </span>
+        <span>Inbox</span>
       </button>
+
+      <div className="mt-auto pt-4 border-t" style={{ borderColor: sidebarBorder }}>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all w-full text-destructive hover:bg-destructive/10"
+        >
+          <LogOut className="h-5 w-5" />
+          <span>Log Out</span>
+        </button>
+      </div>
     </nav>
   );
 
   const desktopSidebar = (
-    <aside className="w-16 hover:w-48 transition-all duration-300 border-r border-[hsl(150,15%,12%)] flex flex-col items-center group overflow-hidden shrink-0 relative"
-      style={{ backgroundColor: "hsl(195, 30%, 15%)" }}
+    <aside
+      className="w-16 hover:w-48 transition-all duration-300 flex flex-col items-center group overflow-hidden shrink-0 relative"
+      style={{ backgroundColor: sidebarBg, borderRight: `1px solid ${sidebarBorder}` }}
     >
       <div className="p-3 mt-2 mb-4">
         <img src={logo} alt="Kongsi Kart" className="h-10 w-10 rounded-xl object-cover" />
       </div>
 
       <nav className="flex flex-col gap-1 px-2 w-full">
-        {navItems.map((item) => navButton(item, true, "opacity-0 group-hover:opacity-100 transition-opacity duration-200"))}
+        {navItems.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => handleNavClick(item.key)}
+            className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap w-full"
+            style={{
+              backgroundColor: activeTab === item.key ? `${activeColor}22` : "transparent",
+              color: activeTab === item.key ? activeColor : inactiveColor,
+            }}
+            onMouseEnter={(e) => { if (activeTab !== item.key) (e.currentTarget.style.backgroundColor = hoverBg); }}
+            onMouseLeave={(e) => { if (activeTab !== item.key) (e.currentTarget.style.backgroundColor = "transparent"); }}
+            title={item.label}
+          >
+            <span className="shrink-0">{item.icon}</span>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">{item.label}</span>
+          </button>
+        ))}
       </nav>
 
       <div className="mt-auto mb-4 px-2 w-full space-y-1">
-        {/* Notifications */}
+        {/* Inbox */}
         <button
           onClick={() => setNotifPanelOpen(!notifPanelOpen)}
-          className="relative flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-[hsl(90,15%,70%)] hover:bg-[hsl(150,15%,18%)] hover:text-[hsl(90,15%,92%)] transition-all w-full whitespace-nowrap"
+          className="relative flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-all w-full whitespace-nowrap"
+          style={{ color: inactiveColor }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverBg; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
           title="Inbox"
         >
           <span className="shrink-0 relative">
@@ -141,10 +183,13 @@ const Dashboard = () => {
           onClear={clearNotifications}
         />
 
-        {/* Logout */}
+        {/* Logout — fixed at very bottom */}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-destructive/70 hover:bg-destructive/10 hover:text-destructive transition-all w-full whitespace-nowrap"
+          className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-all w-full whitespace-nowrap"
+          style={{ color: "hsl(0,62%,55%)" }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(220,38,38,0.1)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
           title="Log Out"
         >
           <LogOut className="h-5 w-5 shrink-0" />
@@ -164,10 +209,10 @@ const Dashboard = () => {
                 <Menu className="h-5 w-5" />
               </button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-60 bg-card">
-              <div className="p-4 border-b border-border flex items-center gap-3">
+            <SheetContent side="left" className="p-0 w-60 flex flex-col" style={{ backgroundColor: sidebarBg }}>
+              <div className="p-4 flex items-center gap-3" style={{ borderBottom: `1px solid ${sidebarBorder}` }}>
                 <img src={logo} alt="Kongsi Kart" className="h-10 w-10 rounded-xl object-cover" />
-                <span className="font-bold text-foreground kongsi-gradient-text text-lg">Kongsi Kart</span>
+                <span className="font-bold kongsi-gradient-text text-lg">Kongsi Kart</span>
               </div>
               {mobileNav}
             </SheetContent>
@@ -193,10 +238,15 @@ const Dashboard = () => {
         </div>
 
         <button
-          onClick={() => navigate("/settings")}
-          className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+          onClick={() => setActiveTab("orders")}
+          className="relative p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
         >
-          <CreditCard className="h-5 w-5" />
+          <Package className="h-5 w-5" />
+          {cartCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] kongsi-gradient border-0 text-white">
+              {cartCount}
+            </Badge>
+          )}
         </button>
       </div>
     </header>
