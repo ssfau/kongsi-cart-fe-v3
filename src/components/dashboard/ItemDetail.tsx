@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { shopItemCategories } from "@/data/shopItems";
+import { produceImages } from "@/assets/produce";
 import api from "@/lib/axios";
 import { useToast } from "@/hooks/use-toast";
 import { ListingItem } from "./ShopPage";
@@ -35,6 +36,7 @@ const ItemDetail = ({ item, onBack, onNotification }: ItemDetailProps) => {
 
   const categoryData = shopItemCategories.find(c => c.name === item.category);
   const displayIcon = categoryData ? categoryData.image : "📦";
+  const imageUrl = produceImages[item.category] || "";
 
   const handleBuy = async () => {
     setIsSubmitting(true);
@@ -98,9 +100,13 @@ const ItemDetail = ({ item, onBack, onNotification }: ItemDetailProps) => {
             </p>
           </div>
 
-          {/* Icon display */}
-          <div className="bg-muted/40 rounded-2xl p-8 flex items-center justify-center">
-            <span className="text-8xl">{displayIcon}</span>
+          {/* Product image */}
+          <div className="bg-muted/40 rounded-2xl overflow-hidden flex items-center justify-center h-64">
+            {imageUrl ? (
+              <img src={imageUrl} alt={item.itemName} className="w-full h-full object-cover" width={512} height={512} />
+            ) : (
+              <span className="text-8xl">{displayIcon}</span>
+            )}
           </div>
 
           {/* Community Demand Bar */}
