@@ -25,16 +25,6 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm<LoginFormData>();
 
-  // Auto-bypass: if backend is unreachable, skip login entirely
-  useState(() => {
-    api.get("/health").catch(() => {
-      toast({ title: "No backend detected", description: "Entering demo mode." });
-      sessionStorage.setItem("demoUserId", "demo-handler-001");
-      sessionStorage.setItem("demoUserRole", "handler");
-      navigate("/handler/listings");
-    });
-  });
-
   const onSubmit = async (data: LoginFormData) => {
     setError(null);
     setIsSubmitting(true);
@@ -69,31 +59,24 @@ const LoginPage = () => {
     }
   };
 
-  
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[hsl(var(--handler-gradient-from))] to-[hsl(var(--handler-gradient-to))] px-4">
       <div className="bg-card text-card-foreground rounded-xl shadow-lg p-8 max-w-md w-full">
-        {/* Logo placeholder */}
         <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
           <ShieldCheck className="w-8 h-8 text-primary" />
         </div>
 
-        {/* Title */}
         <h1 className="text-xl font-semibold text-card-foreground text-center mb-6">
           Handler Portal Login
         </h1>
 
-        {/* Error message */}
         {error && (
           <p className="text-destructive text-sm mb-4 text-center">{error}</p>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Hidden role field */}
           <input type="hidden" value="handler" />
 
-          {/* Email */}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
@@ -117,7 +100,6 @@ const LoginPage = () => {
             )}
           </div>
 
-          {/* Password */}
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <div className="relative">
@@ -139,7 +121,6 @@ const LoginPage = () => {
             )}
           </div>
 
-          {/* Submit */}
           <Button
             type="submit"
             disabled={isSubmitting}
@@ -156,7 +137,6 @@ const LoginPage = () => {
           </Button>
         </form>
 
-        {/* Footer */}
         <div className="flex flex-col items-center gap-4 mt-6">
           <p className="text-muted-foreground text-xs text-center">
             Access restricted to authorized sellers. Contact support to request access.
