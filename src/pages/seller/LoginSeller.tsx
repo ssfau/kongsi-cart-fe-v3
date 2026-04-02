@@ -25,9 +25,16 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm<LoginFormData>();
 
-  // If you never want auto-login, we remove the useEffect redirect completely.
-  // The user will always see this form every time they visit /seller/login.
-  
+  // Auto-bypass: if backend is unreachable, skip login entirely
+  useState(() => {
+    api.get("/health").catch(() => {
+      toast({ title: "No backend detected", description: "Entering demo mode." });
+      sessionStorage.setItem("demoUserId", "demo-handler-001");
+      sessionStorage.setItem("demoUserRole", "handler");
+      navigate("/handler/listings");
+    });
+  });
+
   const onSubmit = async (data: LoginFormData) => {
     setError(null);
     setIsSubmitting(true);
