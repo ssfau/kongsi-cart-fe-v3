@@ -71,7 +71,7 @@ const Explore = () => {
         setListings(enriched);
       } catch (err) {
         console.error("Explore API Error:", err);
-        setListings(fakeListings);
+        setListings([]);
       } finally {
         setLoading(false);
       }

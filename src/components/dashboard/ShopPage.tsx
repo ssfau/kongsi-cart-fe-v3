@@ -98,8 +98,8 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
         setIsBackendData(true);
       } catch (err) {
         console.error("API Error:", err);
-        console.warn("Backend unreachable, using synthetic listings");
-        setListings(fakeListings);
+        console.warn("Backend unreachable — showing empty state (no fallback data)");
+        setListings([]);
         setIsBackendData(false);
       } finally {
         setLoading(false);
