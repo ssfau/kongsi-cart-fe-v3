@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { shopItemCategories } from "@/data/shopItems";
-import { fakeListings } from "@/data/fakeListings";
+
 import ItemDetail from "./ItemDetail";
 import SplitHeroMap from "./SplitHeroMap";
 import api from "@/lib/axios";

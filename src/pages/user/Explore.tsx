@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { shopItemCategories } from "@/data/shopItems";
-import { fakeListings } from "@/data/fakeListings";
+
 import { produceImages } from "@/assets/produce";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { getListingCoords, getDistanceKm } from "@/data/locationCoordinates";
