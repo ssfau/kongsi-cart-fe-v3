@@ -12,6 +12,22 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Backend demoAuth middleware requires these headers
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      config.headers['X-Demo-Role'] = user.role || 'buyer';
+      config.headers['X-Demo-UserId'] = user._id || user.id || '';
+    } catch {
+      // fallback if user data is malformed
+      config.headers['X-Demo-Role'] = 'buyer';
+    }
+  } else {
+    config.headers['X-Demo-Role'] = 'buyer';
+  }
+
   return config;
 });
 
