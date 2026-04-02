@@ -41,21 +41,29 @@ const ItemDetail = ({ item, onBack, onNotification }: ItemDetailProps) => {
 
   const handleBuy = async () => {
     setIsSubmitting(true);
+    const token = localStorage.getItem('token');
+    console.log("Order request — token present:", !!token, "token preview:", token?.substring(0, 20));
     try {
-      await api.post("/orders", {
+      const payload = {
         listingId: item._id,
         itemName: item.itemName,
         image: displayIcon,
         quantity,
         totalPrice: Number(totalPrice),
         depositAmount: item.depositPerUnit,
-      });
+      };
+      console.log("Order payload:", payload);
+      const response = await api.post("/orders", payload);
+      console.log("Order response:", response.data);
       toast({
         title: "Order placed successfully!",
         description: `${quantity}kg of ${item.itemName} for RM ${totalPrice}`,
       });
       onBack();
     } catch (error: any) {
+      console.error("Order error status:", error.response?.status);
+      console.error("Order error data:", error.response?.data);
+      console.error("Order error headers sent:", error.config?.headers);
       // Mock notification on backend failure
       if (onNotification) {
         const neighbors = Math.floor(Math.random() * 5) + 1;
