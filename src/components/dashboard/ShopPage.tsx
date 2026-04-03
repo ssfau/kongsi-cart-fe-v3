@@ -22,6 +22,7 @@ export interface ListingItem {
   state?: string;
   district?: string;
   collectionPoint?: string;
+  collection_point?: string;
   currentDemand?: number;
   targetDemand?: number;
 }
