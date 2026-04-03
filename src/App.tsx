@@ -17,6 +17,7 @@ import SellerLayout from "./components/seller/SellerLayout";
 import InventoryPage from "./pages/seller/InventoryPage";
 import DemandAnalyticsPage from "./pages/seller/DemandAnalyticsPage";
 import DispatchPage from "./pages/seller/DispatchPage";
+import SellerMapPage from "./pages/seller/SellerMapPage";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/handler/listings/:id/demand" element={<DemandDashboard />} />
               <Route path="/handler/demand" element={<DemandAnalyticsPage />} />
               <Route path="/handler/dispatch" element={<DispatchPage />} />
+              <Route path="/handler/map" element={<SellerMapPage />} />     
             </Route>
           </Route>
           <Route path="*" element={<NotFound />} />
