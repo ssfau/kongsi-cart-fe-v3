@@ -30,7 +30,6 @@ const LoginPage = () => {
     setIsSubmitting(true);
 
     try {
-      await api.get("/health");
       const response = await api.post("/auth/login", {
         email: data.email,
         password: data.password,
