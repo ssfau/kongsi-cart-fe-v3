@@ -22,11 +22,12 @@ export interface ListingItem {
   state?: string;
   district?: string;
   collectionPoint?: string;
+  collection_point?: string;
   currentDemand?: number;
   targetDemand?: number;
 }
 
-type CategoryGroup = "All" | "Leafy Greens" | "Vegetables" | "Fruits";
+type CategoryGroup = "All" | "Leafy Greens" | "Vegetables" | "Fruits" | "Pantry Staples";
 
 interface ShopPageProps {
   onNotification?: (msg: string) => void;
@@ -52,6 +53,7 @@ const categoryHeroMap: Record<string, CategoryHeroConfig> = {
   Fruits: { catchphrase: "KONGSI THE KING", nameColor: "#F7941E" },
   "Leafy Greens": { catchphrase: "CRUNCH THE COST", nameColor: "#2D5A27" },
   Vegetables: { catchphrase: "FRESHER, TOGETHER", nameColor: "#8CC63F" },
+  "Pantry Staples": { catchphrase: "STOCK UP, SAVE MORE", nameColor: "#D4A574" },
 };
 
 const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
@@ -108,7 +110,7 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
     fetchListings();
   }, []);
 
-  const categoryGroups: CategoryGroup[] = ["All", "Leafy Greens", "Vegetables", "Fruits"];
+  const categoryGroups: CategoryGroup[] = ["All", "Leafy Greens", "Vegetables", "Fruits", "Pantry Staples"];
 
   const filteredListings = useMemo(() => {
     let items = listings;
