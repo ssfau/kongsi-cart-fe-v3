@@ -50,7 +50,8 @@ const InventoryPage = () => {
           apiData.map((item: any) => ({
             ...item,
             id: item._id || item.id,
-            currentDemand: item.currentDemand || Math.floor(Math.random() * (item.estimatedQty || 100)),
+            currentDemand: item.currentDemand || 0,
+            targetDemand: Number(item.estimatedQty) || item.targetDemand || 100,
           }))
         );
       } catch {
