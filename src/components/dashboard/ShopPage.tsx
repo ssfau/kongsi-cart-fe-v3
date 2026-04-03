@@ -30,6 +30,7 @@ export interface ListingItem {
   collection_point?: string;
   currentDemand?: number;
   targetDemand?: number;
+  group?: string;
 }
 
 type CategoryGroup = "All" | "Leafy Greens" | "Vegetables" | "Fruits" | "Pantry Staples";
@@ -99,6 +100,7 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
           collectionPoint: item.collectionPoint || item.collection_point || "Main Hub",
           currentDemand: item.currentDemand ?? item.current_demand ?? 0,
           targetDemand: Number(item.estimatedQty) || (item.targetDemand ?? item.target_demand ?? 100),
+          group: item.group || shopItemCategories.find(c => c.name === item.category)?.group,
         }));
         console.log("API Enriched Listings:", enrichedListings);
         setListings(enrichedListings);
@@ -141,10 +143,10 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
     }
 
     if (activeGroup !== "All") {
-      const categoryNames = shopItemCategories
-        .filter((c) => c.group === activeGroup)
-        .map((c) => c.name);
-      items = items.filter((item) => categoryNames.includes(item.category));
+      items = items.filter((item) => {
+        const itemGroup = item.group || shopItemCategories.find(c => c.name === item.category)?.group;
+        return itemGroup === activeGroup;
+      });
     }
 
     return items
