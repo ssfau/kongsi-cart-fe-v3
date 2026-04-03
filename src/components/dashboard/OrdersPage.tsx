@@ -115,10 +115,7 @@ const OrdersPage = () => {
                   <span className="font-medium text-foreground">{selectedOrder.amountLeft}</span>
                 </div>
                 {discount > 0 && (
-                  <div className="flex justify-between text-sm bg-accent/10 p-2.5 rounded-lg -mx-1">
-                    <span className="font-semibold text-accent">Community Discount</span>
-                    <span className="font-bold text-accent">{Math.round(discount)}% saved</span>
-                  </div>
+                  {/* Community Discount Removed */}
                 )}
               </div>
               <div className="flex justify-between text-sm border-t border-border pt-3">

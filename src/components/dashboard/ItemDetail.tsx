@@ -252,19 +252,11 @@ const ItemDetail = ({ item, onBack, onNotification }: ItemDetailProps) => {
 
                 <div className="border-t border-border/50 pt-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal (max)</span>
+                    <span className="text-muted-foreground">Deposit to be paid</span>
                     <span className="font-medium text-foreground">
-                      RM {(currentPrice * quantity).toFixed(2)}
+                      RM {(targetPrice * quantity).toFixed(2)}
                     </span>
                   </div>
-                </div>
-
-                {/* Community Discount */}
-                <div className="flex justify-between text-sm bg-kongsi-orange/10 p-3 rounded-xl -mx-1">
-                  <span className="font-semibold text-kongsi-orange">Community Discount</span>
-                  <span className="font-bold text-kongsi-orange">
-                    −RM {communityDiscount}
-                  </span>
                 </div>
               </div>
 
