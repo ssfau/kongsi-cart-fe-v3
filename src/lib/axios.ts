@@ -15,7 +15,13 @@ api.interceptors.request.use((config) => {
 
   // Backend demoAuth middleware requires these headers
   const userStr = localStorage.getItem('user');
-  if (userStr) {
+  const demoUserId = sessionStorage.getItem('demoUserId');
+  const demoUserRole = sessionStorage.getItem('demoUserRole');
+
+  if (demoUserId && demoUserRole) {
+    config.headers['X-Demo-Role'] = demoUserRole;
+    config.headers['X-Demo-UserId'] = demoUserId;
+  } else if (userStr) {
     try {
       const user = JSON.parse(userStr);
       config.headers['X-Demo-Role'] = user.role || 'buyer';
