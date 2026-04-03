@@ -1,6 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { shopItemCategories } from "@/data/shopItems";
+import {
+  Pagination, PaginationContent, PaginationItem,
+  PaginationLink, PaginationNext, PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 
 import ItemDetail from "./ItemDetail";
 import SplitHeroMap from "./SplitHeroMap";
@@ -109,6 +114,12 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
     };
     fetchListings();
   }, []);
+
+  const ITEMS_PER_PAGE = 50;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1); }, [activeGroup, searchQuery]);
 
   const categoryGroups: CategoryGroup[] = ["All", "Leafy Greens", "Vegetables", "Fruits", "Pantry Staples"];
 
@@ -331,101 +342,171 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
           <p className="text-muted-foreground text-lg">No produce available{searchQuery ? ` for "${searchQuery}"` : " in this category"}.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filteredListings.map((item) => {
-            const imageUrl = produceImages[item.category] || "";
-            const categoryData = shopItemCategories.find((c) => c.name === item.category);
-            const icon = categoryData ? categoryData.image : "?";
-            const displayName = getDisplayName(item, isBackendData);
-            const demandPercent = item.currentDemand
-              ? Math.min(100, (item.currentDemand / (item.targetDemand || 100)) * 100)
-              : 0;
-            const isDepositUnlocked = demandPercent >= 80;
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {(() => {
+              const totalPages = Math.ceil(filteredListings.length / ITEMS_PER_PAGE);
+              const start = (currentPage - 1) * ITEMS_PER_PAGE;
+              const pageItems = filteredListings.slice(start, start + ITEMS_PER_PAGE);
+              return pageItems.map((item) => {
+                const imageUrl = produceImages[item.category] || "";
+                const categoryData = shopItemCategories.find((c) => c.name === item.category);
+                const icon = categoryData ? categoryData.image : "?";
+                const displayName = getDisplayName(item, isBackendData);
+                const demandPercent = item.currentDemand
+                  ? Math.min(100, (item.currentDemand / (item.targetDemand || 100)) * 100)
+                  : 0;
+                const isDepositUnlocked = demandPercent >= 80;
+
+                return (
+                  <button
+                    key={item._id}
+                    onClick={() => setSelectedItem(item)}
+                    className="flex flex-col rounded-2xl border border-border bg-card hover:border-primary/50 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden group"
+                  >
+                    <div className="bg-muted/30 flex items-center justify-center h-36 group-hover:bg-primary/5 transition-colors overflow-hidden">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={displayName}
+                          loading="lazy"
+                          width={512}
+                          height={512}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      ) : (
+                        <span className="text-6xl">{icon}</span>
+                      )}
+                    </div>
+
+                    <div className="p-4 flex flex-col gap-2 flex-1">
+                      <span className="text-xs text-primary font-medium flex items-center gap-1">
+                        <Leaf className="h-3 w-3" />
+                        Direct from Supplier
+                      </span>
+                      {(item as any)._distance != null && (
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                          <MapPin className="h-2.5 w-2.5" />
+                          {((item as any)._distance as number).toFixed(1)} km
+                        </span>
+                      )}
+                      <h3 className="text-sm font-bold text-card-foreground leading-snug line-clamp-2">
+                        {displayName}
+                      </h3>
+                      <span className="text-xs text-muted-foreground">
+                        {item.companyName || "Independent Seller"}
+                      </span>
+
+                      <div className="mt-auto pt-2 border-t border-border/50">
+                        {isDepositUnlocked ? (
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-base font-bold text-primary">
+                              RM {item.depositPerUnit.toFixed(2)}
+                            </span>
+                            <span className="text-xs text-muted-foreground line-through">
+                              RM {item.estimatedPriceMax.toFixed(2)}
+                            </span>
+                            <span className="text-[10px] text-primary font-medium">/kg</span>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-base font-bold text-foreground">
+                                RM {item.estimatedPriceMax.toFixed(2)}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground">/kg</span>
+                            </div>
+                            <span className="text-[10px] text-muted-foreground">
+                              Target: RM {item.depositPerUnit.toFixed(2)}/kg
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <TrendingUp className="h-2.5 w-2.5" /> Demand
+                          </span>
+                          <span className="text-[10px] font-medium text-foreground">
+                            {Math.round(demandPercent)}%
+                          </span>
+                        </div>
+                        <Progress
+                          value={demandPercent}
+                          className={`h-1.5 ${isDepositUnlocked ? "[&>div]:bg-primary" : ""}`}
+                        />
+                      </div>
+                    </div>
+                  </button>
+                );
+              });
+            })()}
+          </div>
+
+          {/* Pagination */}
+          {(() => {
+            const totalPages = Math.ceil(filteredListings.length / ITEMS_PER_PAGE);
+            if (totalPages <= 1) return null;
+
+            const getPageNumbers = () => {
+              const pages: (number | "ellipsis")[] = [];
+              if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+              } else {
+                pages.push(1);
+                if (currentPage > 3) pages.push("ellipsis");
+                for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                  pages.push(i);
+                }
+                if (currentPage < totalPages - 2) pages.push("ellipsis");
+                pages.push(totalPages);
+              }
+              return pages;
+            };
 
             return (
-              <button
-                key={item._id}
-                onClick={() => setSelectedItem(item)}
-                className="flex flex-col rounded-2xl border border-border bg-card hover:border-primary/50 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden group"
-              >
-                <div className="bg-muted/30 flex items-center justify-center h-36 group-hover:bg-primary/5 transition-colors overflow-hidden">
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt={displayName}
-                      loading="lazy"
-                      width={512}
-                      height={512}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  ) : (
-                    <span className="text-6xl">{icon}</span>
-                  )}
-                </div>
-
-                <div className="p-4 flex flex-col gap-2 flex-1">
-                  <span className="text-xs text-primary font-medium flex items-center gap-1">
-                    <Leaf className="h-3 w-3" />
-                    Direct from Supplier
-                  </span>
-                  {(item as any)._distance != null && (
-                    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                      <MapPin className="h-2.5 w-2.5" />
-                      {((item as any)._distance as number).toFixed(1)} km
-                    </span>
-                  )}
-                  <h3 className="text-sm font-bold text-card-foreground leading-snug line-clamp-2">
-                    {displayName}
-                  </h3>
-                  <span className="text-xs text-muted-foreground">
-                    {item.companyName || "Independent Seller"}
-                  </span>
-
-                  <div className="mt-auto pt-2 border-t border-border/50">
-                    {isDepositUnlocked ? (
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-base font-bold text-primary">
-                          RM {item.depositPerUnit.toFixed(2)}
-                        </span>
-                        <span className="text-xs text-muted-foreground line-through">
-                          RM {item.estimatedPriceMax.toFixed(2)}
-                        </span>
-                        <span className="text-[10px] text-primary font-medium">/kg</span>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-base font-bold text-foreground">
-                            RM {item.estimatedPriceMax.toFixed(2)}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">/kg</span>
-                        </div>
-                        <span className="text-[10px] text-muted-foreground">
-                          Target: RM {item.depositPerUnit.toFixed(2)}/kg
-                        </span>
-                      </div>
+              <div className="mt-8 flex flex-col items-center gap-2">
+                <p className="text-xs text-muted-foreground">
+                  Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredListings.length)} of {filteredListings.length} listings
+                </p>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    {getPageNumbers().map((page, idx) =>
+                      page === "ellipsis" ? (
+                        <PaginationItem key={`e-${idx}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            isActive={currentPage === page}
+                            onClick={() => setCurrentPage(page)}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
                     )}
-                  </div>
-
-                  <div className="mt-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <TrendingUp className="h-2.5 w-2.5" /> Demand
-                      </span>
-                      <span className="text-[10px] font-medium text-foreground">
-                        {Math.round(demandPercent)}%
-                      </span>
-                    </div>
-                    <Progress
-                      value={demandPercent}
-                      className={`h-1.5 ${isDepositUnlocked ? "[&>div]:bg-primary" : ""}`}
-                    />
-                  </div>
-                </div>
-              </button>
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             );
-          })}
-        </div>
+          })()}
+        </>
       )}
     </div>
   );
