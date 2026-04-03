@@ -97,7 +97,7 @@ const Explore = () => {
     }
     return items
       .map((item) => {
-        const coords = getListingCoords(item.district, item.state);
+        const coords = getListingCoords(item.district, item.state, item.collectionPoint || item.collection_point);
         const distance = getDistanceKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
         return { ...item, _distance: distance, _coords: coords } as EnrichedItem;
       })

@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, Package, MapPin, CreditCard, TrendingUp, Users, Leaf } from "lucide-react";
 import { Order } from "@/data/orders";
-import { fakeOrders } from "@/data/fakeOrders";
 import { produceImages } from "@/assets/produce";
 import { shopItemCategories } from "@/data/shopItems";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import api from "@/lib/axios";
+import CollectionPointMap from "./CollectionPointMap";
 
 const statusColor: Record<string, string> = {
   Processing: "bg-accent/15 text-accent border-accent/30",
@@ -27,9 +27,9 @@ const OrdersPage = () => {
         const response = await api.get("/orders/my-orders");
         setOrders(response.data.data);
       } catch (err: any) {
-        console.warn("Backend unreachable, using synthetic orders", err);
-        setOrders(fakeOrders);
-        setError("");
+        console.error("Failed to fetch orders:", err);
+        setOrders([]);
+        setError("Failed to load your orders. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -137,6 +137,14 @@ const OrdersPage = () => {
               <InfoRow label="State" value={selectedOrder.state} />
               <InfoRow label="Contact" value={selectedOrder.phoneNumber} />
               <InfoRow label="Payment Method" value={selectedOrder.paymentMethod} />
+              
+              <div className="pt-2">
+                <CollectionPointMap 
+                  district={selectedOrder.district}
+                  state={selectedOrder.state}
+                  collectionPoint={selectedOrder.collectionPoint}
+                />
+              </div>
             </div>
           </div>
         </div>

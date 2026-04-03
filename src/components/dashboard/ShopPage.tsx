@@ -136,7 +136,7 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
 
     return items
       .map((item) => {
-        const coords = getListingCoords(item.district, item.state);
+        const coords = getListingCoords(item.district, item.state, item.collectionPoint || item.collection_point);
         const distance = getDistanceKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
         return { ...item, _distance: distance };
       })
@@ -152,7 +152,7 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
       const demandPercent = item.currentDemand
         ? Math.min(100, (item.currentDemand / (item.targetDemand || 100)) * 100)
         : 0;
-      const coords = getListingCoords(item.district, item.state);
+      const coords = getListingCoords(item.district, item.state, item.collectionPoint || item.collection_point);
       const dist = getDistanceKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
       const inverseDist = Math.max(0, 100 - dist);
       const score = demandPercent * 0.7 + inverseDist * 0.3;
