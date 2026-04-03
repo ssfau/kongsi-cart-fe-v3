@@ -27,7 +27,7 @@ export interface ListingItem {
   targetDemand?: number;
 }
 
-type CategoryGroup = "All" | "Leafy Greens" | "Vegetables" | "Fruits";
+type CategoryGroup = "All" | "Leafy Greens" | "Vegetables" | "Fruits" | "Pantry Staples";
 
 interface ShopPageProps {
   onNotification?: (msg: string) => void;
