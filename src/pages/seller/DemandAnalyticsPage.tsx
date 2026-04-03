@@ -17,6 +17,7 @@ interface DemandPoint {
   nextDropVolume: number;
   nextDropPrice: number;
   trend: number[];
+  listingCount?: number;
 }
 
 // Demo data for when API is unavailable
@@ -60,14 +61,56 @@ const DemandAnalyticsPage = () => {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data } = await api.get("/demand-analytics");
-        if (Array.isArray(data?.data) && data.data.length > 0) {
-          setPoints(data.data);
-        } else {
-          setPoints(demoDemandPoints);
-        }
-      } catch {
-        setPoints(demoDemandPoints);
+        const { data } = await api.get("/my-listings");
+        const listings = data?.data || [];
+        
+        const demandPointsMap: Record<string, DemandPoint> = {};
+        
+        listings.forEach((listing: any) => {
+          const locationName = listing.collectionPoint || listing.district || listing.state || "Main Hub";
+          
+          if (!demandPointsMap[locationName]) {
+            demandPointsMap[locationName] = {
+              locationName,
+              totalVolume: 0,
+              maxCapacity: 0,
+              buyerCount: 0,
+              currentPrice: Number(listing.estimatedPriceMax) || 0,
+              nextDropVolume: 0,
+              nextDropPrice: Number(listing.depositPerUnit) || 0,
+              trend: [0, 0, 0, 0, 0, 0, 0],
+              listingCount: 0
+            };
+          }
+          
+          const maxCap = Number(listing.estimatedQty) || 100;
+          const currentVol = Number(listing.currentDemand) || 0;
+          
+          demandPointsMap[locationName].maxCapacity += maxCap;
+          demandPointsMap[locationName].totalVolume += currentVol;
+          demandPointsMap[locationName].nextDropVolume += maxCap * 0.8;
+          demandPointsMap[locationName].buyerCount += currentVol > 0 ? Math.max(1, Math.floor(currentVol / 2)) : 0;
+          demandPointsMap[locationName].listingCount = (demandPointsMap[locationName].listingCount || 0) + 1;
+        });
+        
+        const generatedPoints = Object.values(demandPointsMap).map(point => {
+          const step = point.totalVolume / 6;
+          point.trend = [
+            Math.floor(point.totalVolume - (step*6)),
+            Math.floor(point.totalVolume - (step*5)),
+            Math.floor(point.totalVolume - (step*4)),
+            Math.floor(point.totalVolume - (step*3)),
+            Math.floor(point.totalVolume - (step*2)),
+            Math.floor(point.totalVolume - (step*1)),
+            point.totalVolume
+          ].map(v => Math.max(0, v));
+          return point;
+        });
+
+        setPoints(generatedPoints);
+      } catch (e) {
+        console.error("Error fetching listings for analytics:", e);
+        setPoints([]);
       } finally {
         setLoading(false);
       }
@@ -159,7 +202,12 @@ const DemandAnalyticsPage = () => {
                 </div>
 
                 {/* Metrics row */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 mb-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Listings:</span>
+                    <span className="font-semibold text-foreground">{point.listingCount || 1}</span>
+                  </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <span className="text-muted-foreground">Buyers:</span>
