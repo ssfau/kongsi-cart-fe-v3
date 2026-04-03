@@ -30,6 +30,7 @@ export interface ListingItem {
   collection_point?: string;
   currentDemand?: number;
   targetDemand?: number;
+  group?: string;
 }
 
 type CategoryGroup = "All" | "Leafy Greens" | "Vegetables" | "Fruits" | "Pantry Staples";
