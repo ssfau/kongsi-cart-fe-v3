@@ -62,9 +62,9 @@ const Login = () => {
         <h1 className="text-center text-2xl font-bold text-foreground">Login Page</h1>
 
         {/* Logo */}
-        <div className="flex justify-center">
-          <div className="h-28 w-28 overflow-hidden rounded-full border-2 border-primary bg-card shadow-md flex items-center justify-center">
-            <img src={logo} alt="App Logo" width={80} height={80} className="object-contain" />
+        <div className="flex justify-center mb-8">
+          <div className="h-44 w-44 overflow-hidden rounded-full border-4 border-primary bg-card shadow-lg flex items-center justify-center">
+            <img src={logo} alt="App Logo" className="w-full h-full object-cover scale-110" />
           </div>
         </div>
 
