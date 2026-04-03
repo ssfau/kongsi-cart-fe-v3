@@ -100,6 +100,7 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
           collectionPoint: item.collectionPoint || item.collection_point || "Main Hub",
           currentDemand: item.currentDemand ?? item.current_demand ?? 0,
           targetDemand: Number(item.estimatedQty) || (item.targetDemand ?? item.target_demand ?? 100),
+          group: item.group || shopItemCategories.find(c => c.name === item.category)?.group,
         }));
         console.log("API Enriched Listings:", enrichedListings);
         setListings(enrichedListings);
