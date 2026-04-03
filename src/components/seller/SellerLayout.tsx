@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import {
   Package, BarChart3, Truck, LogOut, Menu,
-  PlusCircle, ShieldCheck,
+  PlusCircle, ShieldCheck, Map
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -12,7 +12,7 @@ const navItems = [
   { key: "/handler/listings", label: "Inventory", icon: <Package className="h-5 w-5" /> },
   { key: "/handler/demand", label: "Demand", icon: <BarChart3 className="h-5 w-5" /> },
   { key: "/handler/dispatch", label: "Dispatch", icon: <Truck className="h-5 w-5" /> },
-  { key: "/handler/listings/new", label: "New Listing", icon: <PlusCircle className="h-5 w-5" /> },
+  { key: "/handler/map", label: "Map View", icon: <Map className="h-5 w-5" /> },
 ];
 
 export default function SellerLayout() {
