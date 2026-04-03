@@ -53,6 +53,7 @@ const categoryHeroMap: Record<string, CategoryHeroConfig> = {
   Fruits: { catchphrase: "KONGSI THE KING", nameColor: "#F7941E" },
   "Leafy Greens": { catchphrase: "CRUNCH THE COST", nameColor: "#2D5A27" },
   Vegetables: { catchphrase: "FRESHER, TOGETHER", nameColor: "#8CC63F" },
+  "Pantry Staples": { catchphrase: "STOCK UP, SAVE MORE", nameColor: "#D4A574" },
 };
 
 const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {

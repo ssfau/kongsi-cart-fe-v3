@@ -21,6 +21,16 @@ import durian from "@/assets/produce/durian.jpg";
 import papaya from "@/assets/produce/papaya.jpg";
 import watermelon from "@/assets/produce/watermelon.jpg";
 import mango from "@/assets/produce/mango.jpg";
+import beras from "@/assets/produce/beras.jpg";
+import tepung from "@/assets/produce/tepung.jpg";
+import kicap from "@/assets/produce/kicap.jpg";
+import soscili from "@/assets/produce/soscili.jpg";
+import sostomato from "@/assets/produce/sostomato.jpg";
+import minyak from "@/assets/produce/minyak.jpg";
+import gula from "@/assets/produce/gula.jpg";
+import garam from "@/assets/produce/garam.jpg";
+import santan from "@/assets/produce/santan.jpg";
+import mee from "@/assets/produce/mee.jpg";
 
 export const produceImages: Record<string, string> = {
   Spinach: spinach,
@@ -46,4 +56,14 @@ export const produceImages: Record<string, string> = {
   Papaya: papaya,
   Watermelon: watermelon,
   Mango: mango,
+  Beras: beras,
+  "Tepung Gandum": tepung,
+  Kicap: kicap,
+  "Sos Cili": soscili,
+  "Sos Tomato": sostomato,
+  "Minyak Masak": minyak,
+  Gula: gula,
+  Garam: garam,
+  Santan: santan,
+  Mee: mee,
 };

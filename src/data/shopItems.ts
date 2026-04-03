@@ -2,7 +2,7 @@ export interface ShopItemCategory {
   id: string;
   name: string;
   image: string;
-  group: "Leafy Greens" | "Vegetables" | "Fruits";
+  group: "Leafy Greens" | "Vegetables" | "Fruits" | "Pantry Staples";
   displayName: string;
 }
 
@@ -35,4 +35,16 @@ export const shopItemCategories: ShopItemCategory[] = [
   { id: "34", name: "Papaya", image: "🥭", group: "Fruits", displayName: "Sekaki Papaya" },
   { id: "35", name: "Watermelon", image: "🍉", group: "Fruits", displayName: "Seedless Watermelon" },
   { id: "36", name: "Mango", image: "🥭", group: "Fruits", displayName: "Harumanis Mango" },
+
+  // Pantry Staples
+  { id: "40", name: "Beras", image: "🍚", group: "Pantry Staples", displayName: "Beras Wangi (Fragrant Rice)" },
+  { id: "41", name: "Tepung Gandum", image: "🌾", group: "Pantry Staples", displayName: "Tepung Gandum (Wheat Flour)" },
+  { id: "42", name: "Kicap", image: "🫗", group: "Pantry Staples", displayName: "Kicap Manis / Masin (Soy Sauce)" },
+  { id: "43", name: "Sos Cili", image: "🌶️", group: "Pantry Staples", displayName: "Sos Cili (Chili Sauce)" },
+  { id: "44", name: "Sos Tomato", image: "🍅", group: "Pantry Staples", displayName: "Sos Tomato (Ketchup)" },
+  { id: "45", name: "Minyak Masak", image: "🫒", group: "Pantry Staples", displayName: "Minyak Masak (Cooking Oil)" },
+  { id: "46", name: "Gula", image: "🍬", group: "Pantry Staples", displayName: "Gula Pasir (White Sugar)" },
+  { id: "47", name: "Garam", image: "🧂", group: "Pantry Staples", displayName: "Garam Halus (Fine Salt)" },
+  { id: "48", name: "Santan", image: "🥥", group: "Pantry Staples", displayName: "Santan Kelapa (Coconut Milk)" },
+  { id: "49", name: "Mee", image: "🍜", group: "Pantry Staples", displayName: "Mee / Bihun (Noodles & Vermicelli)" },
 ];

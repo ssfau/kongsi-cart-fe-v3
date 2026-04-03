@@ -114,9 +114,7 @@ const OrdersPage = () => {
                   <span className="text-muted-foreground">Amount Remaining</span>
                   <span className="font-medium text-foreground">{selectedOrder.amountLeft}</span>
                 </div>
-                {discount > 0 && (
-                  {/* Community Discount Removed */}
-                )}
+                {/* Community Discount Removed */}
               </div>
               <div className="flex justify-between text-sm border-t border-border pt-3">
                 <span className="text-muted-foreground">Quantity</span>
