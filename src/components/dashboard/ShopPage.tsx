@@ -143,10 +143,10 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
     }
 
     if (activeGroup !== "All") {
-      const categoryNames = shopItemCategories
-        .filter((c) => c.group === activeGroup)
-        .map((c) => c.name);
-      items = items.filter((item) => categoryNames.includes(item.category));
+      items = items.filter((item) => {
+        const itemGroup = item.group || shopItemCategories.find(c => c.name === item.category)?.group;
+        return itemGroup === activeGroup;
+      });
     }
 
     return items
