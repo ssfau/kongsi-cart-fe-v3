@@ -115,6 +115,12 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
     fetchListings();
   }, []);
 
+  const ITEMS_PER_PAGE = 50;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1); }, [activeGroup, searchQuery]);
+
   const categoryGroups: CategoryGroup[] = ["All", "Leafy Greens", "Vegetables", "Fruits", "Pantry Staples"];
 
   const filteredListings = useMemo(() => {
