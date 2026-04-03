@@ -47,6 +47,9 @@ const ItemDetail = ({ item, onBack, onNotification }: ItemDetailProps) => {
       const payload = {
         listingId: item._id,
         itemName: item.itemName,
+        collectionPoint: item.collectionPoint,
+        district: item.district,
+        state: item.state,
         image: displayIcon,
         quantity,
         totalPrice: Number(totalPrice),

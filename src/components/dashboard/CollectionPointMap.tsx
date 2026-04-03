@@ -16,7 +16,7 @@ const CollectionPointMap = ({ district, state, collectionPoint }: CollectionPoin
   useEffect(() => {
     if (!mapRef.current) return;
 
-    const coords = getListingCoords(district, state);
+    const coords = getListingCoords(district, state, collectionPoint);
 
     if (mapInstance.current) {
       mapInstance.current.remove();

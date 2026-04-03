@@ -96,10 +96,16 @@ export const locationCoordinates: Record<string, { lat: number; lng: number }> =
   "Port Dickson": { lat: 2.5225, lng: 101.7964 },
   "Nilai": { lat: 2.8000, lng: 101.8000 },
   // Sabah
+  "Sabah": { lat: 5.9804, lng: 116.0735 }, // Fallback for state "Sabah"
   "Kota Kinabalu": { lat: 5.9804, lng: 116.0735 },
   "Sandakan": { lat: 5.8402, lng: 118.1179 },
   "Tawau": { lat: 4.2498, lng: 117.8871 },
+  "Lahad Datu": { lat: 5.0274, lng: 118.3270 },
+  "Semporna": { lat: 4.4759, lng: 118.6146 },
+  "Kudat": { lat: 6.8833, lng: 116.8167 },
+  "Keningau": { lat: 5.3400, lng: 116.1600 },
   // Sarawak
+  "Sarawak": { lat: 1.5535, lng: 110.3593 }, // Fallback for state "Sarawak"
   "Kuching": { lat: 1.5535, lng: 110.3593 },
   "Miri": { lat: 4.3995, lng: 114.0118 },
   "Sibu": { lat: 2.2870, lng: 111.8308 },
@@ -109,10 +115,43 @@ export const locationCoordinates: Record<string, { lat: number; lng: number }> =
   // Putrajaya & Labuan
   "Putrajaya": { lat: 2.9264, lng: 101.6964 },
   "Labuan": { lat: 5.2831, lng: 115.2308 },
+
+  // Collection Points (Specific Hubs)
+  "Taman Jaya Hub": { lat: 3.1030, lng: 101.6393 },
+  "Cameron Main Hub": { lat: 4.4718, lng: 101.3792 },
+  "Ipoh Central": { lat: 4.5975, lng: 101.0901 },
+  "Kluang Station": { lat: 2.0251, lng: 103.3168 },
+  "Balik Pulau Market": { lat: 5.3500, lng: 100.2167 },
+  "KL Sentral Hub": { lat: 3.1340, lng: 101.6861 },
+  "Petaling Jaya Centre": { lat: 3.1073, lng: 101.6067 },
+  "Shah Alam Depot": { lat: 3.0733, lng: 101.5185 },
+  "Subang Jaya Point": { lat: 3.0565, lng: 101.5851 },
+  "Cyberjaya Hub": { lat: 2.9228, lng: 101.6572 },
+  "Raub Main Hub": { lat: 3.7889, lng: 101.8567 }
 };
 
 // Default location: Central Klang Valley
 export const DEFAULT_LOCATION = { lat: 3.1390, lng: 101.6869 };
+
+// State fallbacks 
+const stateFallbacks: Record<string, {lat: number; lng: number}> = {
+  "Selangor": { lat: 3.0733, lng: 101.5185 },
+  "Kuala Lumpur": { lat: 3.1390, lng: 101.6869 },
+  "Pahang": { lat: 3.8077, lng: 103.3260 },
+  "Perak": { lat: 4.5975, lng: 101.0901 },
+  "Johor": { lat: 1.4927, lng: 103.7414 },
+  "Penang": { lat: 5.4141, lng: 100.3288 },
+  "Kedah": { lat: 6.1248, lng: 100.3670 },
+  "Kelantan": { lat: 6.1256, lng: 102.2385 },
+  "Terengganu": { lat: 5.3117, lng: 103.1324 },
+  "Melaka": { lat: 2.1896, lng: 102.2501 },
+  "Negeri Sembilan": { lat: 2.7258, lng: 101.9424 },
+  "Sabah": { lat: 5.9804, lng: 116.0735 },
+  "Sarawak": { lat: 1.5535, lng: 110.3593 },
+  "Perlis": { lat: 6.4414, lng: 100.1986 },
+  "Putrajaya": { lat: 2.9264, lng: 101.6964 },
+  "Labuan": { lat: 5.2831, lng: 115.2308 },
+};
 
 // Haversine distance in km
 export function getDistanceKm(
@@ -130,9 +169,11 @@ export function getDistanceKm(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Resolve a listing's coordinates from district or state
-export function getListingCoords(district?: string, state?: string) {
+// Resolve a listing's coordinates from collection point, district, or state
+export function getListingCoords(district?: string, state?: string, collectionPoint?: string) {
+  if (collectionPoint && locationCoordinates[collectionPoint]) return locationCoordinates[collectionPoint];
   if (district && locationCoordinates[district]) return locationCoordinates[district];
   if (state && locationCoordinates[state]) return locationCoordinates[state];
+  if (state && stateFallbacks[state]) return stateFallbacks[state];
   return DEFAULT_LOCATION;
 }

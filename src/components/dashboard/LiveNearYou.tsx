@@ -24,7 +24,7 @@ const LiveNearYou = ({ listings, userLat, userLng, onExplore, onSelectItem }: Li
   const nearby = useMemo(() => {
     return listings
       .map((item) => {
-        const coords = getListingCoords(item.district, item.state);
+        const coords = getListingCoords(item.district, item.state, item.collectionPoint || item.collection_point);
         const distance = getDistanceKm(userLat, userLng, coords.lat, coords.lng);
         return { ...item, _distance: distance, _coords: coords };
       })
