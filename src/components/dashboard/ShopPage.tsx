@@ -1,6 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { shopItemCategories } from "@/data/shopItems";
+import {
+  Pagination, PaginationContent, PaginationItem,
+  PaginationLink, PaginationNext, PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 
 import ItemDetail from "./ItemDetail";
 import SplitHeroMap from "./SplitHeroMap";
