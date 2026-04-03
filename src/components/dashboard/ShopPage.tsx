@@ -90,8 +90,8 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
           state: item.state || "Unspecified Location",
           district: item.district || "Unspecified District",
           collectionPoint: item.collectionPoint || item.collection_point || "Main Hub",
-          currentDemand: item.currentDemand ?? item.current_demand ?? Math.floor(Math.random() * 100),
-          targetDemand: item.targetDemand ?? item.target_demand ?? 100,
+          currentDemand: item.currentDemand ?? item.current_demand ?? 0,
+          targetDemand: Number(item.estimatedQty) || (item.targetDemand ?? item.target_demand ?? 100),
         }));
         console.log("API Enriched Listings:", enrichedListings);
         setListings(enrichedListings);
@@ -167,7 +167,20 @@ const ShopPage = ({ onNotification, searchQuery = "" }: ShopPageProps) => {
   const heroListing = heroItem?.item || null;
 
   if (selectedItem) {
-    return <ItemDetail item={selectedItem} onBack={() => setSelectedItem(null)} onNotification={onNotification} />;
+    return (
+      <ItemDetail 
+        item={selectedItem} 
+        onBack={() => setSelectedItem(null)} 
+        onNotification={onNotification}
+        onOrderComplete={(qty) => {
+          setListings(prev => prev.map(item => 
+            item._id === selectedItem._id 
+              ? { ...item, currentDemand: item.currentDemand + qty } 
+              : item
+          ));
+        }}
+      />
+    );
   }
   const heroName = heroListing ? getDisplayName(heroListing, isBackendData) : "Musang King Durian";
   const heroCategory = heroListing?.category || "Durian";

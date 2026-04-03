@@ -64,8 +64,8 @@ const Explore = () => {
           state: item.state || "Unspecified Location",
           district: item.district || "Unspecified District",
           collectionPoint: item.collectionPoint || item.collection_point || "Main Hub",
-          currentDemand: item.currentDemand ?? item.current_demand ?? Math.floor(Math.random() * 100),
-          targetDemand: item.targetDemand ?? item.target_demand ?? 100,
+          currentDemand: item.currentDemand ?? item.current_demand ?? 0,
+          targetDemand: Number(item.estimatedQty) || (item.targetDemand ?? item.target_demand ?? 100),
         }));
         console.log("Explore API Enriched Listings:", enriched);
         setListings(enriched);
@@ -279,7 +279,19 @@ const Explore = () => {
   }, [loading, groups, userLocation.lat, userLocation.lng, buildClusterHtml, buildPopupHtml]);
 
   if (selectedItem) {
-    return <ItemDetail item={selectedItem} onBack={() => setSelectedItem(null)} />;
+    return (
+      <ItemDetail 
+        item={selectedItem} 
+        onBack={() => setSelectedItem(null)} 
+        onOrderComplete={(qty) => {
+          setListings(prev => prev.map(item => 
+            item._id === selectedItem._id 
+              ? { ...item, currentDemand: item.currentDemand + qty } 
+              : item
+          ));
+        }}
+      />
+    );
   }
 
   return (

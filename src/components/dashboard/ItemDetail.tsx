@@ -15,9 +15,10 @@ interface ItemDetailProps {
   item: ListingItem;
   onBack: () => void;
   onNotification?: (msg: string) => void;
+  onOrderComplete?: (qty: number) => void;
 }
 
-const ItemDetail = ({ item, onBack, onNotification }: ItemDetailProps) => {
+const ItemDetail = ({ item, onBack, onNotification, onOrderComplete }: ItemDetailProps) => {
   const [quantity, setQuantity] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -62,6 +63,7 @@ const ItemDetail = ({ item, onBack, onNotification }: ItemDetailProps) => {
         title: "Order placed successfully!",
         description: `${quantity}kg of ${item.itemName} for RM ${totalPrice}`,
       });
+      if (onOrderComplete) onOrderComplete(quantity);
       onBack();
     } catch (error: any) {
       console.error("Order error status:", error.response?.status);
