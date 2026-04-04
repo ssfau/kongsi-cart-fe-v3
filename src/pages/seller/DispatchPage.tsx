@@ -104,13 +104,14 @@ const DispatchPage = () => {
     const fetchShipments = async () => {
       try {
         const { data } = await api.get("/dispatch");
-        if (Array.isArray(data?.data) && data.data.length > 0) {
+        if (data && Array.isArray(data.data)) {
           setShipments(data.data);
         } else {
-          setShipments(demoShipments);
+          setShipments([]);
         }
-      } catch {
-        setShipments(demoShipments);
+      } catch (error) {
+        console.error("Error fetching shipments:", error);
+        setShipments([]);
       } finally {
         setLoading(false);
       }
