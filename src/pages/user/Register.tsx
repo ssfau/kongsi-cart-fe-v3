@@ -4,11 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
 import api from "@/services/api";
+import { Eye, EyeOff } from "lucide-react";
 
 const Register = () => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -74,15 +76,25 @@ const Register = () => {
             className="h-12 bg-card border-border"
             disabled={isLoading}
           />
-          <Input
-            type="password"
-            placeholder="Password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="h-12 bg-card border-border"
-            disabled={isLoading}
-          />
+          <div className="relative">
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-12 bg-card border-border pr-10"
+              disabled={isLoading}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+              disabled={isLoading}
+            >
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          </div>
 
           <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading}>
             {isLoading ? "Registering..." : "Register"}
