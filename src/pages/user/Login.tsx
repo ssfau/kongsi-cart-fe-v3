@@ -72,7 +72,7 @@ const Login = () => {
         <form onSubmit={handleLogin} className="space-y-5">
           <Input
             type="text"
-            placeholder="Username (Email)"
+            placeholder="Email"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             className="h-12 bg-card border-border"
