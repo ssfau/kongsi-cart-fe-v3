@@ -61,7 +61,7 @@ const ItemDetail = ({ item, onBack, onNotification, onOrderComplete }: ItemDetai
       console.log("Order response:", response.data);
       toast({
         title: "Order placed successfully!",
-        description: `${quantity}kg of ${item.itemName} for RM ${totalPrice}`,
+        description: `${quantity}kg of ${item.itemName} for RM ${depositTotal}`,
       });
       if (onOrderComplete) onOrderComplete(quantity);
       onBack();
