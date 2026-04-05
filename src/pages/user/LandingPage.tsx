@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
 import farmHero from "@/assets/farm-hero.jpg";
+import sdg2 from "@/assets/sdg2.png";
+import sdg12 from "@/assets/sdg12.png";
 import { ShoppingCart, Users, Leaf } from "lucide-react";
 
 const gradientBtn =
@@ -128,9 +130,10 @@ const LandingPage = () => {
                 <Leaf className="h-6 w-6" />
               </div>
               <h3 className="mb-3 text-xl font-bold text-white">SDG Goals</h3>
-              <p className="text-sm leading-relaxed text-white/80">
-                SUSTAINABLE DEVELOPMENT GOALS: ZERO HUNGER AND RESPONSIBLE CONSUMPTION AND PRODUCTION.
-              </p>
+              <div className="flex items-center gap-4">
+                <img src={sdg2} alt="SDG 2 - Zero Hunger" className="h-20 w-20 rounded-lg object-cover" />
+                <img src={sdg12} alt="SDG 12 - Responsible Consumption and Production" className="h-20 w-20 rounded-lg object-cover" />
+              </div>
             </div>
           </div>
         </div>
