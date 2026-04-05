@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
 import farmHero from "@/assets/farm-hero.jpg";
+import groceriesHero from "@/assets/groceries-hero.png";
 import sdg2 from "@/assets/sdg2.png";
 import sdg12 from "@/assets/sdg12.png";
 import { ShoppingCart, Users, Leaf } from "lucide-react";
