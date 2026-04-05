@@ -85,8 +85,8 @@ const LandingPage = () => {
         {/* Background image */}
         <div className="absolute inset-0">
           <img
-            src={farmHero}
-            alt="Fresh agricultural produce fields"
+            src={groceriesHero}
+            alt="Fresh groceries and produce"
             className="h-full w-full object-cover"
             width={1920}
             height={1080}
