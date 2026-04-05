@@ -144,6 +144,23 @@ const LoginPage = () => {
             Return to User Login
           </Link>
         </div>
+
+        {/* Demo Credentials For Judges */}
+        <div className="mt-8 p-4 bg-primary/10 rounded-xl border border-primary/20 shadow-sm">
+          <h3 className="text-sm font-semibold mb-3 text-center text-card-foreground flex items-center justify-center gap-2">
+            🏪 Demo Seller Credentials
+          </h3>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Email</span>
+              <span className="font-mono bg-background/50 px-2 py-1 rounded text-card-foreground text-sm">handler@gmail.com</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Password</span>
+              <span className="font-mono bg-background/50 px-2 py-1 rounded text-card-foreground text-sm">password123</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
