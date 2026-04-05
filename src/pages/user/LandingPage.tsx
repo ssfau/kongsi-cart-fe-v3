@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
 import farmHero from "@/assets/farm-hero.jpg";
+import groceriesHero from "@/assets/groceries-hero.png";
 import sdg2 from "@/assets/sdg2.png";
 import sdg12 from "@/assets/sdg12.png";
 import { ShoppingCart, Users, Leaf } from "lucide-react";
@@ -84,8 +85,8 @@ const LandingPage = () => {
         {/* Background image */}
         <div className="absolute inset-0">
           <img
-            src={farmHero}
-            alt="Fresh agricultural produce fields"
+            src={groceriesHero}
+            alt="Fresh groceries and produce"
             className="h-full w-full object-cover"
             width={1920}
             height={1080}
